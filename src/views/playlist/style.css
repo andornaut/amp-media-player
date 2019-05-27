@@ -1,0 +1,43 @@
+.playlist {
+  background-color: var(--playlist-bg);
+  text-align: right;
+}
+
+.playlist__clear-button {
+  margin: 1rem;
+}
+
+.playlist__remove-button {
+  background: none;
+  border: 0 none;
+  display: inline;
+  padding: 0 1rem 0 0.5rem;
+}
+
+.playlist__list {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.playlist__item {
+  align-items: center;
+  border-bottom: 2px dashed transparent;
+  border-top: 2px dashed transparent;
+  display: flex;
+}
+
+.playlist__play {
+  display: block;
+  flex: 1;
+  padding: 0.25rem 0 0.25rem 1rem;
+  word-break: break-word;
+}
+
+.playlist__item:hover {
+  background-color: var(--navigator-bg);
+}
+
+.playlist__item--active {
+  border-color: var(--highlight-border);
+}

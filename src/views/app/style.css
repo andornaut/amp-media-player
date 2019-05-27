@@ -1,0 +1,43 @@
+body {
+  color: var(--text-color);
+  font-family: sans-serif;
+  line-height: 140%;
+  margin: 0;
+}
+
+a,
+a:active,
+a:focus {
+  color: var(--text-color);
+  outline: none;
+  text-decoration: none;
+}
+
+button {
+  cursor: pointer;
+}
+
+.app {
+  --config-bg: #99bfbf;
+  --highlight-border: #550066;
+  --navigator-bg: #eee8d5;
+  --player-bg: #fffbd6;
+  --playlist-bg: #fffbd6;
+  --text-color: #555588;
+  display: grid;
+  grid-template-columns: 50% 50%;
+  grid-template-rows: auto;
+  min-height: 100vh;
+}
+
+.app__media,
+.app__navigation {
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.input {
+  border: 1px solid var(--text-color);
+  border-radius: 3px;
+  padding: 0.2rem 0.3rem;
+}

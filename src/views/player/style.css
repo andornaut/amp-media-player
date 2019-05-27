@@ -1,0 +1,24 @@
+.player {
+  background-color: var(--player-bg);
+}
+
+.player__clear-button {
+  background-color: transparent;
+  border: 0 none;
+  cursor: pointer;
+  margin-left: 0.5rem;
+}
+
+.player__media {
+  /* Chrome renders the <video> element with rounded corners, this background color mimics a right-angle look. */
+  background-color: #f1f3f4;
+  display: flex;
+  outline: 0 none;
+  width: 100%;
+}
+
+.player__title {
+  font-size: 1.4rem;
+  margin: 2rem 1rem 1rem;
+  text-align: center;
+}

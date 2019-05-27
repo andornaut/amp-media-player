@@ -1,0 +1,71 @@
+.config {
+  background-color: var(--config-bg);
+  display: flex;
+  font-size: 0.8rem;
+  padding: 1rem;
+}
+
+.config__buttons {
+  white-space: nowrap;
+}
+
+.config__buttons:first-child {
+  margin-bottom: 1rem;
+}
+
+.config__buttons:last-child {
+  margin-top: 1rem;
+}
+
+.config__form {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.config__input {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.config__inputs {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.config__label {
+  align-items: baseline;
+  color: white;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin-top: 0.5rem;
+}
+
+.config__label:first-child {
+  margin-top: 0;
+}
+
+.config__shortcuts {
+  background-color: var(--playlist-bg);
+  border: 1rem solid var(--config-bg);
+  padding: 1rem;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 1;
+}
+
+.config__title {
+  font-size: 1rem;
+  margin: 0 1rem 0 0;
+}
+
+@media (min-width: 600px) {
+}

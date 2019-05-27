@@ -1,0 +1,31 @@
+.navigator {
+  background-color: var(--navigator-bg);
+}
+
+.navigator__add-all-button {
+  margin: 0 1rem 1rem 1rem;
+}
+
+.navigator__item {
+  border-bottom: 2px dashed transparent;
+  border-top: 2px dashed transparent;
+  display: block;
+  padding: 0.25rem 1rem;
+  word-break: break-word;
+}
+
+.navigator__item:hover {
+  background-color: var(--player-bg);
+}
+
+.navigator__item--active {
+  border-color: var(--highlight-border);
+}
+
+.navigator__search-form {
+  margin: 1rem;
+}
+
+.navigator__search-input {
+  width: 100%;
+}
