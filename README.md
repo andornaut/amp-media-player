@@ -1,6 +1,6 @@
 # AMP Media Player
 
-AMP Media Player is a lightweight web-app that enables you to stream music from
+AMP Media Player is a lightweight web-app for streaming music from
 [web server directory indexes](https://en.wikipedia.org/wiki/Webserver_directory_index).
 
 ![screenshot](./screenshot.png)
@@ -16,7 +16,7 @@ AMP is the successor to
 
 ## Installation
 
-```
+```bash
 npm run build-production
 cp -a dist /var/www/example.com/amp
 ```
