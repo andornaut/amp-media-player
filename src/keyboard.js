@@ -9,7 +9,11 @@ import {
   refresh,
 } from './actions/navigator';
 import { resetPlayer, togglePlayPause } from './actions/player';
-import { resetPlaylist, selectNextPlaylistItem, selectPreviousPlaylistItem } from './actions/playlist';
+import {
+  resetPlaylist,
+  selectNextPlaylistItem,
+  selectPreviousPlaylistItem,
+} from './actions/playlist';
 
 export const KEYBOARD_BINDINGS = {
   '?': [toggleShortcutsHelp, 'Toggle this shortcuts help'],
@@ -41,10 +45,7 @@ export const initKeyboard = () => {
     if (form) {
       // The search form requires special handling to blur when Escape is pressed.
       if (form.name === 'search' && key === 'Escape') {
-        const tmp = document.createElement('input');
-        form.appendChild(tmp);
-        tmp.focus();
-        form.removeChild(tmp);
+        event.target.blur();
       }
       return;
     }
