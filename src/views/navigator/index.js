@@ -6,7 +6,7 @@ import {
   enqueueFilteredFiles,
   navigate,
   navigateForward,
-  setFilter,
+  debouncedSetFilter,
   disableFocusTrigger,
 } from '../../actions/navigator';
 import { enqueue } from '../../actions/playlist';
@@ -20,7 +20,7 @@ const onClickAnchor = (action) => (event) => {
 };
 
 const onInputSearchFilter = (event) => {
-  setFilter(event.target.value);
+  debouncedSetFilter(event.target.value);
 };
 
 const onSubmit = (event) => {
@@ -28,27 +28,57 @@ const onSubmit = (event) => {
   navigateForward();
 };
 
-const addAllButton = html`
-  <button class="navigator__add-all-button" @click=${enqueueFilteredFiles}>Add all files</button>`;
+const addAllButton = html` <button
+  class="navigator__add-all-button"
+  @click=${enqueueFilteredFiles}
+>
+  Add all files
+</button>`;
 
 const item = (current) => (url) => {
   const action = isFile(url) ? enqueue : navigate;
   const cssClass = `navigator__item${url === current ? ' navigator__item--active' : ''}`;
-  return html`
-    <a class=${cssClass} href=${url} @click=${onClickAnchor(action)}>
-      ${toFilename(url)}
-    </a>`;
+  return html` <a class=${cssClass} href=${url} @click=${onClickAnchor(action)}>
+    ${toFilename(url)}
+  </a>`;
 };
 
-const searchForm = (filter) => html`
-  <form class="navigator__search-form" name="search" @submit=${onSubmit}>
-    <input class="navigator__search-input input" @input=${onInputSearchFilter} type="search" .value=${filter}>
+const searchForm = (filter) =>
+  html` <form class="navigator__search-form" name="search" @submit=${onSubmit}>
+    <input
+      class="navigator__search-input input"
+      @input=${onInputSearchFilter}
+      type="search"
+      .value=${filter}
+    />
   </form>`;
 
 export const navigator = view(({ render, state }) => {
   const {
-    current, filter, filteredFiles, filteredItems, items,
+    current,
+    filter,
+    filteredFiles,
+    filteredItems,
+    items,
+    isLoading,
+    error,
   } = state.navigator;
+
+  if (error) {
+    render`<div class="navigator__status navigator__status--error">${error}</div>`;
+    return;
+  }
+
+  if (isLoading && !items.length) {
+    render`<div class="navigator__status navigator__status--loading">Loading...</div>`;
+    return;
+  }
+
+  if (!isLoading && !items.length) {
+    render`<div class="navigator__status">No files found.</div>`;
+    return;
+  }
+
   render`
     <div class="navigator">
       ${items.length ? searchForm(filter) : null}

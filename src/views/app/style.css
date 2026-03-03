@@ -41,3 +41,9 @@ button {
   border-radius: 3px;
   padding: 0.2rem 0.3rem;
 }
+
+/* View Transitions */
+::view-transition-old(navigator-list),
+::view-transition-new(navigator-list) {
+  animation-duration: 200ms;
+}

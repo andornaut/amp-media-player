@@ -29,3 +29,18 @@
 .navigator__search-input {
   width: 100%;
 }
+
+.navigator__status {
+  padding: 2rem;
+  text-align: center;
+  opacity: 0.7;
+}
+
+.navigator__status--error {
+  color: var(--error-color, #ff4444);
+  opacity: 1;
+}
+
+.navigator__list {
+  view-transition-name: navigator-list;
+}

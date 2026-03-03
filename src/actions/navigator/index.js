@@ -6,7 +6,10 @@ import {
   clearCache, getFromCache, removeFromCache, setInCache,
 } from './cache';
 import {
-  getBreadcrumbs, getCurrent, getFilteredFiles, getFilteredItems,
+  getBreadcrumbs,
+  getCurrent,
+  getFilteredFiles,
+  getFilteredItems,
 } from './getters';
 import { scrapeUrls } from './spider';
 
@@ -24,6 +27,8 @@ const clearNavigator = (state) => {
     shouldTriggerFocus: false,
     items: [],
     url: '',
+    isLoading: false,
+    error: null,
   });
 };
 
@@ -49,37 +54,62 @@ export const enableFocusTrigger = action(({ commit, state }) => {
   commit(state);
 });
 
+const transition = (cb) => {
+  if (document.startViewTransition) {
+    document.startViewTransition(cb);
+  } else {
+    cb();
+  }
+};
+
 export const navigate = action(async ({ commit, state }, url) => {
   clearNavigator(state);
-
-  // If `url` is cached, then `items` will be updated on a subsequent navigation to the same url.
-  const itemsPromise = scrapeUrls(url, state.config.proxy)
-    .then((items) => {
-      setInCache(url, items);
-      return items;
-    })
-    .catch((err) => {
-      // eslint-disable-next-line no-console
-      console.error('Error fetching', url, err);
-      removeFromCache(url);
-      return [];
-    });
-
-  const items = getFromCache(url) || (await itemsPromise);
-  Object.assign(state.navigator, {
-    items,
-    url,
-  });
+  state.navigator.url = url;
+  state.navigator.isLoading = true;
   commit(state);
+
+  try {
+    const itemsPromise = scrapeUrls(url, state.config.proxy)
+      .then((items) => {
+        setInCache(url, items);
+        return items;
+      })
+      .catch((err) => {
+        removeFromCache(url);
+        throw err;
+      });
+
+    const items = getFromCache(url) || (await itemsPromise);
+    transition(() => {
+      Object.assign(state.navigator, {
+        items,
+        isLoading: false,
+        error: null,
+      });
+      commit(state);
+    });
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('Error fetching', url, err);
+    state.navigator.isLoading = false;
+    state.navigator.error = 'Failed to load directory. Check your connection or proxy settings.';
+    commit(state);
+  }
 });
 
-export const refresh = action(({ state: { navigator: { url } } }) => {
-  if (!url) {
-    return;
-  }
-  removeFromCache(url);
-  navigate(url);
-});
+export const refresh = action(
+  ({
+    state: {
+      navigator: { url },
+    },
+  }) => {
+    if (!url) {
+      return;
+    }
+    removeFromCache(url);
+    navigate(url);
+  },
+);
 
 export const navigateBackward = action(({ state }) => {
   const { breadcrumbs } = state.navigator;
@@ -122,3 +152,9 @@ export const setFilter = action(({ commit, state }, filter) => {
   state.navigator.filter = filter;
   commit(state);
 });
+
+let filterTimeout;
+export const debouncedSetFilter = (filter) => {
+  clearTimeout(filterTimeout);
+  filterTimeout = setTimeout(() => setFilter(filter), 150);
+};
