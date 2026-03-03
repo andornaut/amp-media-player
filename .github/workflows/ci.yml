@@ -1,10 +1,14 @@
-name: CI
+name: Release
 
 on:
   push:
     branches: [main]
+    tags: ["v*"]
   pull_request:
     branches: [main]
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -13,7 +17,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Use Node.js from .nvmrc
+        uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
           cache: "npm"
@@ -23,3 +28,42 @@ jobs:
       - run: npm run lint
 
       - run: npm run build:prod
+
+      - name: Create release artifact
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          cd dist && zip -r ../amp-media-player-$VERSION.zip .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-package
+          path: amp-media-player-*.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Delete previous main release
+        if: github.ref == 'refs/heads/main'
+        run: |
+          gh release delete main --yes || true
+          git push --delete origin refs/tags/main || true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref == 'refs/heads/main' && 'main' || github.ref_name }}
+          name: ${{ github.ref == 'refs/heads/main' && 'main' || github.ref_name }}
+          body: ${{ github.ref == 'refs/heads/main' && 'Latest build from main branch' || '' }}
+          files: artifacts/release-package/amp-media-player-*.zip
