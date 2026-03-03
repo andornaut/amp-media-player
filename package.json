@@ -20,9 +20,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.4",
     "@eslint/js": "^9.39.3",
-    "clean-webpack-plugin": "^4.0.0",
-    "copy-webpack-plugin": "^14.0.0",
-    "css-loader": "^7.1.4",
+    "esbuild": "^0.27.3",
     "eslint": "^9.0.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-airbnb-base": "^15.0.0",
@@ -32,18 +30,14 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.3.1",
     "prettier": "^3.8.1",
-    "prettier-eslint-cli": "^8.0.1",
-    "style-loader": "^4.0.0",
-    "webpack": "^5.105.3",
-    "webpack-cli": "^6.0.1",
-    "webpack-dev-server": "^5.2.3"
+    "prettier-eslint-cli": "^8.0.1"
   },
   "scripts": {
-    "build": "webpack --mode=development",
-    "build-production": "webpack --mode=production",
-    "format": "prettier-eslint --write '{src/**/,tests/**/,./}*.{css,js,json,jsx,md}'",
+    "build": "node build.mjs",
+    "build-production": "node build.mjs --production",
+    "format": "prettier-eslint --write '{src/**/,tests/**/,./}*.{css,js,json,jsx,md,mjs}'",
     "prepare": "husky",
-    "static-analysis": "eslint --max-warnings 0 \"{src,tests}/**/*.{js,jsx}\"",
-    "server": "webpack-dev-server --mode=development"
+    "static-analysis": "eslint --max-warnings 0 \"{src,tests}/**/*.{js,jsx}\" build.mjs",
+    "server": "node build.mjs --watch"
   }
 }

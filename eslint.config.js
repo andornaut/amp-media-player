@@ -32,12 +32,15 @@ module.exports = [
       'implicit-arrow-linebreak': 0,
       'import/no-extraneous-dependencies': [
         'error',
-        { devDependencies: ['webpack.config.js'] },
+        { devDependencies: ['build.mjs', 'eslint.config.js'] },
       ],
       'import/order': [
         'error',
         {
-          groups: [['builtin', 'external'], ['internal', 'parent', 'sibling', 'index']],
+          groups: [
+            ['builtin', 'external'],
+            ['internal', 'parent', 'sibling', 'index'],
+          ],
           'newlines-between': 'always',
           alphabetize: { order: 'asc' },
         },
@@ -53,6 +56,25 @@ module.exports = [
       'no-unused-expressions': ['error', { allowTaggedTemplates: true }],
       // Required for including regex in string attribute values
       'no-useless-escape': 0,
+    },
+  },
+  {
+    files: ['eslint.config.js'],
+    rules: {
+      'global-require': 0,
+    },
+  },
+  {
+    files: ['build.mjs'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      globals: {
+        ...globals.node,
+      },
+      sourceType: 'module',
+    },
+    rules: {
+      'no-console': 0,
     },
   },
 ];
