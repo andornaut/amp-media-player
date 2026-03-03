@@ -1,100 +1,100 @@
-const { FlatCompat } = require('@eslint/eslintrc');
-const js = require('@eslint/js');
-const globals = require('globals');
-const path = require('path');
+import js from "@eslint/js";
+import importPlugin from "eslint-plugin-import";
+import react from "eslint-plugin-react";
+import reactHooks from "eslint-plugin-react-hooks";
+import simpleImportSort from "eslint-plugin-simple-import-sort";
+import sortDestructureKeys from "eslint-plugin-sort-destructure-keys";
+import globals from "globals";
 
-// Side-effect import: patches ESLint's linter to process scripts in HTML files
-require('eslint-plugin-html');
-
-const compat = new FlatCompat({
-  baseDirectory: path.resolve(__dirname),
-  recommendedConfig: js.configs.recommended,
-});
-
-module.exports = [
-  { ignores: ['dist/**', 'node_modules/**'] },
-  ...compat.extends('airbnb'),
-  ...compat.extends('airbnb/hooks'),
+export default [
   {
+    ignores: ["dist/**", "node_modules/**"],
+  },
+  js.configs.recommended,
+  // Source files (React)
+  {
+    files: ["src/**/*.js"],
     languageOptions: {
-      ecmaVersion: 2022,
-      sourceType: 'module',
+      ecmaVersion: "latest",
       globals: {
         ...globals.browser,
-        navigator: true,
       },
       parserOptions: {
         ecmaFeatures: {
           jsx: true,
         },
       },
+      sourceType: "module",
     },
     plugins: {
-      import: require('eslint-plugin-import'),
-      react: require('eslint-plugin-react'),
-      'react-hooks': require('eslint-plugin-react-hooks'),
+      import: importPlugin,
+      react,
+      "react-hooks": reactHooks,
+      "simple-import-sort": simpleImportSort,
+      "sort-destructure-keys": sortDestructureKeys,
     },
     rules: {
-      'class-methods-use-this': 0,
-      'guard-for-in': 0,
-      // Allow const x => y => x * y;
-      'implicit-arrow-linebreak': 0,
-      'import/no-extraneous-dependencies': [
-        'error',
-        { devDependencies: ['build.mjs', 'eslint.config.js'] },
-      ],
-      'import/order': [
-        'error',
+      ...react.configs.recommended.rules,
+      ...react.configs["jsx-runtime"].rules,
+      ...reactHooks.configs.recommended.rules,
+      "max-len": ["error", { code: 120 }],
+      "no-restricted-syntax": ["error", "WithStatement"],
+      "no-unused-expressions": ["error", { allowTaggedTemplates: false }],
+      "react-hooks/refs": "off", // False positives with wrapper functions
+      "react/display-name": "off",
+      "react/jsx-no-target-blank": "off",
+      "react/no-unescaped-entities": "off",
+      "react/prop-types": "off",
+      "simple-import-sort/exports": "error",
+      "simple-import-sort/imports": [
+        "error",
         {
           groups: [
-            ['builtin', 'external'],
-            ['internal', 'parent', 'sibling', 'index'],
+            // External packages
+            ["^@?\\w"],
+            // Internal/relative imports
+            ["^", "^\\."],
           ],
-          'newlines-between': 'always',
-          alphabetize: { order: 'asc' },
         },
       ],
-      'import/prefer-default-export': 0,
-      'max-len': ['error', { code: 120 }],
-      'no-continue': 0,
-      // Improve literacy of reduce() functions
-      'no-param-reassign': 0,
-      'no-restricted-syntax': ['error', 'WithStatement'],
-      // Prefix symbols with underscore to denote private visibility
-      'no-underscore-dangle': 0,
-      'no-unused-expressions': ['error', { allowTaggedTemplates: true }],
-      // Required for including regex in string attribute values
-      'no-useless-escape': 0,
-      'react/function-component-definition': 0,
-      'react/prop-types': 0,
-      'react/react-in-jsx-scope': 0,
-      'react/jsx-filename-extension': [1, { extensions: ['.js', '.jsx'] }],
-      'react/no-array-index-key': 0,
-      'jsx-a11y/media-has-caption': 0,
+      "sort-destructure-keys/sort-destructure-keys": ["error"],
+      "sort-keys": ["error"],
     },
     settings: {
       react: {
-        version: 'detect',
+        version: "detect",
       },
     },
   },
+  // Build scripts
   {
-    files: ['eslint.config.js'],
-    rules: {
-      'global-require': 0,
-    },
-  },
-  {
-    files: ['build.mjs'],
+    files: ["*.mjs", "*.js"],
+    ignores: ["src/**", "static/**"],
     languageOptions: {
-      ecmaVersion: 2022,
+      ecmaVersion: "latest",
       globals: {
         ...globals.node,
       },
-      sourceType: 'module',
+      sourceType: "module",
     },
     rules: {
-      'no-console': 0,
+      "sort-keys": "off",
+    },
+  },
+  // Static JS (vanilla, no React)
+  {
+    files: ["static/**/*.js"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      globals: {
+        ...globals.browser,
+      },
+      sourceType: "script",
+    },
+    rules: {
+      "max-len": ["error", { code: 120 }],
+      "no-restricted-syntax": ["error", "WithStatement"],
+      "sort-keys": "off",
     },
   },
 ];

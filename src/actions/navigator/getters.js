@@ -1,5 +1,5 @@
-import { isFile, toAbsoluteUrl } from '../../helpers';
-import { toFilename, trimTrailingForwardSlash } from '../../transform';
+import { isFile, toAbsoluteUrl } from "../../helpers";
+import { toFilename, trimTrailingForwardSlash } from "../../transform";
 
 export const getBreadcrumbs = (
   { url },
@@ -23,7 +23,7 @@ export const getBreadcrumbs = (
   const baseLength = absoluteBaseUrl.length;
   let currentUrl = absoluteUrl;
   for (;;) {
-    const idx = trimTrailingForwardSlash(currentUrl).lastIndexOf('/');
+    const idx = trimTrailingForwardSlash(currentUrl).lastIndexOf("/");
     if (idx === -1) {
       break;
     }
@@ -37,7 +37,7 @@ export const getBreadcrumbs = (
   return urls.reverse();
 };
 
-export const getCurrent = ({ index, filteredItems }) =>
+export const getCurrent = ({ filteredItems, index }) =>
   filteredItems[index] || filteredItems[0];
 
 export const getFilteredFiles = ({ filteredItems }) =>
@@ -49,5 +49,6 @@ export const getFilteredItems = ({ filter, items }) => {
   }
   const lowerFilter = filter.toLowerCase();
   return items.filter((url) =>
-    toFilename(url).toLowerCase().includes(lowerFilter));
+    toFilename(url).toLowerCase().includes(lowerFilter),
+  );
 };

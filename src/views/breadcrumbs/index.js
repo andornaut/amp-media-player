@@ -1,9 +1,9 @@
-import { navigate } from '../../actions/navigator';
-import { toTitle } from '../../transform';
-import './style.css';
+import "./style.css";
+import { navigate } from "../../actions/navigator";
+import { toTitle } from "../../transform";
 
-const ROOT_SHORTCUT = 'Shortcut: ctrl + b';
-const UP_SHORTCUT = 'Shortcut: b or backspace';
+const ROOT_SHORTCUT = "Shortcut: ctrl + b";
+const UP_SHORTCUT = "Shortcut: b or backspace";
 
 const onClick = (event) => {
   event.preventDefault();
@@ -11,9 +11,7 @@ const onClick = (event) => {
   navigate(href);
 };
 
-const Breadcrumb = ({
-  className, label, title, url,
-}) => (
+const Breadcrumb = ({ className, label, title, url }) => (
   <a
     className={`breadcrumbs__item ${className}`}
     href={url}

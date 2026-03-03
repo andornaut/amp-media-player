@@ -1,16 +1,16 @@
-import { useRef, useEffect } from 'react';
+import { useEffect, useRef } from "react";
 
+import "./style.css";
 import {
+  debouncedSetFilter,
+  disableFocusTrigger,
   enqueueFilteredFiles,
   navigate,
   navigateForward,
-  debouncedSetFilter,
-  disableFocusTrigger,
-} from '../../actions/navigator';
-import { enqueue } from '../../actions/playlist';
-import { isFile } from '../../helpers';
-import { toFilename } from '../../transform';
-import './style.css';
+} from "../../actions/navigator";
+import { enqueue } from "../../actions/playlist";
+import { isFile } from "../../helpers";
+import { toFilename } from "../../transform";
 
 const onClickAnchor = (action) => (event) => {
   event.preventDefault();
@@ -26,15 +26,13 @@ const onSubmit = (event) => {
   navigateForward();
 };
 
-const Item = ({
-  url, current, isPlaying, isEnqueued,
-}) => {
+const Item = ({ current, isEnqueued, isPlaying, url }) => {
   const action = isFile(url) ? enqueue : navigate;
-  let cssClass = `navigator__item${url === current ? ' navigator__item--active' : ''}`;
+  let cssClass = `navigator__item${url === current ? " navigator__item--active" : ""}`;
   if (isPlaying) {
-    cssClass += ' navigator__item--playing';
+    cssClass += " navigator__item--playing";
   } else if (isEnqueued) {
-    cssClass += ' navigator__item--enqueued';
+    cssClass += " navigator__item--enqueued";
   }
 
   return (
@@ -48,12 +46,12 @@ export const Navigator = ({ state }) => {
   const navigatorState = state.navigator || {};
   const {
     current,
+    error,
     filter,
     filteredFiles = [],
     filteredItems = [],
-    items = [],
     isLoading,
-    error,
+    items = [],
     shouldTriggerFocus,
   } = navigatorState;
 

@@ -1,31 +1,31 @@
-import { compact, unique, toAbsoluteUrl } from '../../helpers';
-import { toFilename } from '../../transform';
+import { compact, toAbsoluteUrl, unique } from "../../helpers";
+import { toFilename } from "../../transform";
 
 const EXCLUDED_ANCHOR_NAMES = [
-  '.',
-  '..',
-  'description',
-  'last modified',
-  'name',
-  'parent directory',
-  'size',
+  ".",
+  "..",
+  "description",
+  "last modified",
+  "name",
+  "parent directory",
+  "size",
 ];
 
 const toAnchors = (text) =>
   Array.from(
     new DOMParser()
-      .parseFromString(text, 'text/html')
-      .getElementsByTagName('a'),
+      .parseFromString(text, "text/html")
+      .getElementsByTagName("a"),
   );
 
 const toUrl = (baseAbsoluteUrl) => {
   const baseUrlObj = new URL(baseAbsoluteUrl);
   return (anchor) => {
     if (
-      anchor.hash
-      || !anchor.pathname
-      || anchor.pathname === '/'
-      || anchor.search
+      anchor.hash ||
+      !anchor.pathname ||
+      anchor.pathname === "/" ||
+      anchor.search
     ) {
       return null;
     }
@@ -52,7 +52,7 @@ const toUrl = (baseAbsoluteUrl) => {
   };
 };
 
-const requestOptions = ({ username, password }) => {
+const requestOptions = ({ password, username }) => {
   if (!username) {
     return {};
   }

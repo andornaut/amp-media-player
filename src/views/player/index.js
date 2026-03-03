@@ -1,12 +1,12 @@
-import { useRef, useEffect } from 'react';
+import { useEffect, useRef } from "react";
 
-import './style.css';
-import { resetPlayer, togglePlayPause, setVolume } from '../../actions/player';
+import "./style.css";
+import { resetPlayer, setVolume, togglePlayPause } from "../../actions/player";
 import {
   selectNextPlaylistItem,
   selectPreviousPlaylistItem,
-} from '../../actions/playlist';
-import { toTitle } from '../../transform';
+} from "../../actions/playlist";
+import { toTitle } from "../../transform";
 
 export const Player = ({ state }) => {
   const { isPlaying, url, volume = 1 } = state.player || {};
@@ -16,17 +16,17 @@ export const Player = ({ state }) => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    audio.addEventListener('ended', selectNextPlaylistItem);
+    audio.addEventListener("ended", selectNextPlaylistItem);
 
     const onVolumeChange = () => {
       setVolume(audio.volume);
     };
-    audio.addEventListener('volumechange', onVolumeChange);
+    audio.addEventListener("volumechange", onVolumeChange);
 
     const updatePositionState = () => {
       if (
-        'mediaSession' in navigator
-        && 'setPositionState' in navigator.mediaSession
+        "mediaSession" in navigator &&
+        "setPositionState" in navigator.mediaSession
       ) {
         if (!audio.duration || Number.isNaN(audio.duration)) return;
         navigator.mediaSession.setPositionState({
@@ -37,29 +37,29 @@ export const Player = ({ state }) => {
       }
     };
 
-    audio.addEventListener('timeupdate', updatePositionState);
-    audio.addEventListener('durationchange', updatePositionState);
-    audio.addEventListener('ratechange', updatePositionState);
+    audio.addEventListener("timeupdate", updatePositionState);
+    audio.addEventListener("durationchange", updatePositionState);
+    audio.addEventListener("ratechange", updatePositionState);
 
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.setActionHandler('play', togglePlayPause);
-      navigator.mediaSession.setActionHandler('pause', togglePlayPause);
+    if ("mediaSession" in navigator) {
+      navigator.mediaSession.setActionHandler("play", togglePlayPause);
+      navigator.mediaSession.setActionHandler("pause", togglePlayPause);
       navigator.mediaSession.setActionHandler(
-        'previoustrack',
+        "previoustrack",
         selectPreviousPlaylistItem,
       );
       navigator.mediaSession.setActionHandler(
-        'nexttrack',
+        "nexttrack",
         selectNextPlaylistItem,
       );
 
       try {
-        navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+        navigator.mediaSession.setActionHandler("seekbackward", (details) => {
           const skipTime = details.seekOffset || 10;
           audio.currentTime = Math.max(audio.currentTime - skipTime, 0);
           updatePositionState();
         });
-        navigator.mediaSession.setActionHandler('seekforward', (details) => {
+        navigator.mediaSession.setActionHandler("seekforward", (details) => {
           const skipTime = details.seekOffset || 10;
           audio.currentTime = Math.min(
             audio.currentTime + skipTime,
@@ -67,8 +67,8 @@ export const Player = ({ state }) => {
           );
           updatePositionState();
         });
-        navigator.mediaSession.setActionHandler('seekto', (details) => {
-          if (details.fastSeek && 'fastSeek' in audio) {
+        navigator.mediaSession.setActionHandler("seekto", (details) => {
+          if (details.fastSeek && "fastSeek" in audio) {
             audio.fastSeek(details.seekTime);
             return;
           }
@@ -80,13 +80,12 @@ export const Player = ({ state }) => {
       }
     }
 
-    // eslint-disable-next-line consistent-return
     return () => {
-      audio.removeEventListener('ended', selectNextPlaylistItem);
-      audio.removeEventListener('volumechange', onVolumeChange);
-      audio.removeEventListener('timeupdate', updatePositionState);
-      audio.removeEventListener('durationchange', updatePositionState);
-      audio.removeEventListener('ratechange', updatePositionState);
+      audio.removeEventListener("ended", selectNextPlaylistItem);
+      audio.removeEventListener("volumechange", onVolumeChange);
+      audio.removeEventListener("timeupdate", updatePositionState);
+      audio.removeEventListener("durationchange", updatePositionState);
+      audio.removeEventListener("ratechange", updatePositionState);
     };
   }, []);
 
@@ -100,10 +99,10 @@ export const Player = ({ state }) => {
     }
 
     if (!url) {
-      audio.src = '';
+      audio.src = "";
       audio.pause();
-      if ('mediaSession' in navigator) {
-        navigator.mediaSession.playbackState = 'none';
+      if ("mediaSession" in navigator) {
+        navigator.mediaSession.playbackState = "none";
         navigator.mediaSession.metadata = null;
       }
       return;
@@ -117,18 +116,18 @@ export const Player = ({ state }) => {
       audio.play().catch(() => {
         /* ignore play() interruptions */
       });
-      if ('mediaSession' in navigator) {
-        navigator.mediaSession.playbackState = 'playing';
+      if ("mediaSession" in navigator) {
+        navigator.mediaSession.playbackState = "playing";
         navigator.mediaSession.metadata = new window.MediaMetadata({
+          album: "amp-media-player",
+          artist: "amp-media-player",
           title: toTitle(url),
-          artist: 'amp-media-player',
-          album: 'amp-media-player',
         });
       }
     } else {
       audio.pause();
-      if ('mediaSession' in navigator) {
-        navigator.mediaSession.playbackState = 'paused';
+      if ("mediaSession" in navigator) {
+        navigator.mediaSession.playbackState = "paused";
       }
     }
   }, [isPlaying, url, volume]);
@@ -143,9 +142,9 @@ export const Player = ({ state }) => {
           {toTitle(url)}
           <button
             className="player__clear-button"
-            type="button"
             onClick={resetPlayer}
             title="Clear"
+            type="button"
           >
             ✖
           </button>

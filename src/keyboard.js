@@ -1,50 +1,50 @@
-import { toggleShortcutsHelp } from './actions/config';
+import { toggleShortcutsHelp } from "./actions/config";
 import {
-  enqueueFilteredFiles,
   enableFocusTrigger,
+  enqueueFilteredFiles,
   navigateBackward,
   navigateForward,
+  refresh,
   selectNextNavigatorItem,
   selectPreviousNavigatorItem,
-  refresh,
-} from './actions/navigator';
-import { resetPlayer, togglePlayPause } from './actions/player';
+} from "./actions/navigator";
+import { resetPlayer, togglePlayPause } from "./actions/player";
 import {
   resetPlaylist,
   selectNextPlaylistItem,
   selectPreviousPlaylistItem,
-} from './actions/playlist';
+} from "./actions/playlist";
 
 export const KEYBOARD_BINDINGS = {
-  '?': [toggleShortcutsHelp, 'Toggle this shortcuts help'],
-  '/': [enableFocusTrigger, 'Focus on the search box'],
-  p: [togglePlayPause, 'Toggle Play/Pause'],
-  x: [resetPlayer, 'Clear the current player file'],
-  c: [resetPlaylist, 'Clear the playlist'],
-  a: [enqueueFilteredFiles, 'Enqueue files'],
-  r: [refresh, 'Refresh the current location'],
-  b: [navigateBackward, 'Navigate backwards'],
-  f: [navigateForward, 'Navigate forward'],
-  Enter: [navigateForward, 'Navigate forward'],
-  ArrowDown: [selectNextNavigatorItem, 'Select next navigator entry'],
-  j: [selectNextNavigatorItem, 'Select next navigator entry'],
-  ArrowUp: [selectPreviousNavigatorItem, 'Select previous navigator entry'],
-  k: [selectPreviousNavigatorItem, 'Select previous navigator entry'],
-  ArrowRight: [selectNextPlaylistItem, 'Select next playlist entry'],
-  l: [selectNextPlaylistItem, 'Select next playlist file'],
-  ArrowLeft: [selectPreviousPlaylistItem, 'Select previous playlist entry'],
-  h: [selectPreviousPlaylistItem, 'Select previous playlist entry'],
+  "/": [enableFocusTrigger, "Focus on the search box"],
+  "?": [toggleShortcutsHelp, "Toggle this shortcuts help"],
+  ArrowDown: [selectNextNavigatorItem, "Select next navigator entry"],
+  ArrowLeft: [selectPreviousPlaylistItem, "Select previous playlist entry"],
+  ArrowRight: [selectNextPlaylistItem, "Select next playlist entry"],
+  ArrowUp: [selectPreviousNavigatorItem, "Select previous navigator entry"],
+  Enter: [navigateForward, "Navigate forward"],
+  a: [enqueueFilteredFiles, "Enqueue files"],
+  b: [navigateBackward, "Navigate backwards"],
+  c: [resetPlaylist, "Clear the playlist"],
+  f: [navigateForward, "Navigate forward"],
+  h: [selectPreviousPlaylistItem, "Select previous playlist entry"],
+  j: [selectNextNavigatorItem, "Select next navigator entry"],
+  k: [selectPreviousNavigatorItem, "Select previous navigator entry"],
+  l: [selectNextPlaylistItem, "Select next playlist file"],
+  p: [togglePlayPause, "Toggle Play/Pause"],
+  r: [refresh, "Refresh the current location"],
+  x: [resetPlayer, "Clear the current player file"],
 };
 
 export const initKeyboard = () => {
-  document.addEventListener('keydown', (event) => {
+  document.addEventListener("keydown", (event) => {
     const {
       key,
       target: { form },
     } = event;
     if (form) {
       // The search form requires special handling to blur when Escape is pressed.
-      if (form.name === 'search' && key === 'Escape') {
+      if (form.name === "search" && key === "Escape") {
         event.target.blur();
       }
       return;

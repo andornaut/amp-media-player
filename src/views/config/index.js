@@ -1,14 +1,14 @@
-import './style.css';
+import "./style.css";
 import {
   closeForm,
   openForm,
   setProxy,
   toggleShortcutsHelp,
-} from '../../actions/config';
-import { resetAll } from '../../actions/init';
-import { navigateToDefault } from '../../actions/navigator';
-import { Breadcrumbs } from '../breadcrumbs';
-import { Shortcuts } from './shortcuts';
+} from "../../actions/config";
+import { resetAll } from "../../actions/init";
+import { navigateToDefault } from "../../actions/navigator";
+import { Breadcrumbs } from "../breadcrumbs";
+import { Shortcuts } from "./shortcuts";
 
 const onCancel = (event) => {
   event.preventDefault();
@@ -26,7 +26,7 @@ const onSubmit = (event) => {
 };
 
 const ConfigForm = ({ proxy }) => {
-  const { baseUrl, username = '', password = '' } = proxy;
+  const { baseUrl, password = "", username = "" } = proxy;
   return (
     <form className="config__form config__form--open" onSubmit={onSubmit}>
       <div className="config__inputs">

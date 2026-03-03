@@ -1,8 +1,8 @@
-import { Config } from '../config';
-import { Navigator } from '../navigator';
-import { Player } from '../player';
-import { Playlist } from '../playlist';
-import './style.css';
+import "./style.css";
+import { Config } from "../config";
+import { Navigator } from "../navigator";
+import { Player } from "../player";
+import { Playlist } from "../playlist";
 
 export const App = ({ state }) => (
   <div className="app">

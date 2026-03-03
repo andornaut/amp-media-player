@@ -1,34 +1,32 @@
-import { cycle, isFile } from '../../helpers';
-import { enqueue } from '../playlist';
-import {
-  clearCache, getFromCache, removeFromCache, setInCache,
-} from './cache';
+import { cycle, isFile } from "../../helpers";
+import { action, defineGetter, getState } from "../../state";
+import { enqueue } from "../playlist";
+import { clearCache, getFromCache, removeFromCache, setInCache } from "./cache";
 import {
   getBreadcrumbs,
   getCurrent,
   getFilteredFiles,
   getFilteredItems,
-} from './getters';
-import { scrapeUrls } from './spider';
-import { action, defineGetter, getState } from '../../state';
+} from "./getters";
+import { scrapeUrls } from "./spider";
 
 export const defineNavigationGetters = () => {
-  defineGetter('navigator.breadcrumbs', getBreadcrumbs);
-  defineGetter('navigator.filteredItems', getFilteredItems);
-  defineGetter('navigator.filteredFiles', getFilteredFiles);
-  defineGetter('navigator.current', getCurrent);
+  defineGetter("navigator.breadcrumbs", getBreadcrumbs);
+  defineGetter("navigator.filteredItems", getFilteredItems);
+  defineGetter("navigator.filteredFiles", getFilteredFiles);
+  defineGetter("navigator.current", getCurrent);
 };
 
 const clearNavigator = (state) => {
   state.navigator = state.navigator || {};
   Object.assign(state.navigator, {
-    filter: '',
-    index: 0,
-    shouldTriggerFocus: false,
-    items: [],
-    url: '',
-    isLoading: false,
     error: null,
+    filter: "",
+    index: 0,
+    isLoading: false,
+    items: [],
+    shouldTriggerFocus: false,
+    url: "",
   });
 };
 
@@ -67,10 +65,10 @@ export const navigate = action(async ({ commit, state }, url) => {
   if (cachedItems) {
     transition(() => {
       Object.assign(state.navigator, {
-        url,
-        items: cachedItems,
-        isLoading: false,
         error: null,
+        isLoading: false,
+        items: cachedItems,
+        url,
       });
       commit(state);
     });
@@ -88,17 +86,17 @@ export const navigate = action(async ({ commit, state }, url) => {
 
     transition(() => {
       Object.assign(state.navigator, {
-        items,
-        isLoading: false,
         error: null,
+        isLoading: false,
+        items,
       });
       commit(state);
     });
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error('Error fetching', url, err);
+    console.error("Error fetching", url, err);
     state.navigator.isLoading = false;
-    state.navigator.error = 'Failed to load directory. Check your connection or proxy settings.';
+    state.navigator.error =
+      "Failed to load directory. Check your connection or proxy settings.";
     commit(state);
   }
 });

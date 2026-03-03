@@ -1,13 +1,13 @@
-import './style.css';
+import "./style.css";
 import {
   dequeueIndex,
   resetPlaylist,
   selectIndex,
-} from '../../actions/playlist';
-import { toFilename } from '../../transform';
+} from "../../actions/playlist";
+import { toFilename } from "../../transform";
 
-const Item = ({ url, index, currentIndex }) => {
-  const cssClass = `playlist__item${index === currentIndex ? ' playlist__item--active' : ''}`;
+const Item = ({ currentIndex, index, url }) => {
+  const cssClass = `playlist__item${index === currentIndex ? " playlist__item--active" : ""}`;
   const filename = toFilename(url);
 
   const onClickPlay = (event) => {

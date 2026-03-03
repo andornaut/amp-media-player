@@ -1,7 +1,7 @@
-import { Component } from 'react';
+import { Component } from "react";
 
-import { initState } from '../actions/init';
-import './error-boundary.css';
+import "./error-boundary.css";
+import { initState } from "../actions/init";
 
 export class ErrorBoundary extends Component {
   constructor(props) {
@@ -14,8 +14,7 @@ export class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // eslint-disable-next-line no-console
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
   }
 
   handleRetry = async () => {
