@@ -21,7 +21,6 @@
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "statezero": "^0.9.0",
-    "statezero-react-hooks": "^0.1.0",
     "zustand": "^5.0.11"
   },
   "devDependencies": {

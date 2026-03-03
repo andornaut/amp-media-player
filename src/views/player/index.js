@@ -1,5 +1,4 @@
 import { useRef, useEffect } from 'react';
-import { useStatezero } from 'statezero-react-hooks';
 
 import './style.css';
 import { resetPlayer, togglePlayPause } from '../../actions/player';
@@ -9,8 +8,8 @@ import {
 } from '../../actions/playlist';
 import { toTitle } from '../../transform';
 
-export const Player = () => {
-  const { isPlaying, url } = useStatezero((state) => state.player || {});
+export const Player = ({ state }) => {
+  const { isPlaying, url } = state.player || {};
   const audioRef = useRef(null);
 
   useEffect(() => {

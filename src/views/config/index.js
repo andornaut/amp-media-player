@@ -1,5 +1,3 @@
-import { useStatezero } from 'statezero-react-hooks';
-
 import './style.css';
 import {
   closeForm,
@@ -73,27 +71,26 @@ const ConfigForm = ({ proxy }) => {
   );
 };
 
-const Header = ({ isShortcutsModalOpen }) => (
+const Header = ({ isShortcutsModalOpen, state }) => (
   <header className="config__form config__form--closed">
     <div className="config__buttons">
       <button onClick={openForm}>Edit</button>
       <button onClick={toggleShortcutsHelp}>Help</button>
       {isShortcutsModalOpen && <Shortcuts />}
     </div>
-    <Breadcrumbs />
+    <Breadcrumbs state={state} />
   </header>
 );
 
-export const Config = () => {
-  const configState = useStatezero((state) => state.config || {});
-  const { isFormOpen, isShortcutsModalOpen, proxy } = configState;
+export const Config = ({ state }) => {
+  const { isFormOpen, isShortcutsModalOpen, proxy } = state.config || {};
 
   return (
     <div className="config">
       {isFormOpen ? (
         <ConfigForm proxy={proxy} />
       ) : (
-        <Header isShortcutsModalOpen={isShortcutsModalOpen} />
+        <Header isShortcutsModalOpen={isShortcutsModalOpen} state={state} />
       )}
     </div>
   );

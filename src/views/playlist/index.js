@@ -1,5 +1,3 @@
-import { useStatezero } from 'statezero-react-hooks';
-
 import './style.css';
 import {
   dequeueIndex,
@@ -43,10 +41,8 @@ const Item = ({ url, index, currentIndex }) => {
   );
 };
 
-export const Playlist = () => {
-  const { index, items } = useStatezero(
-    (state) => state.playlist || { index: 0, items: [] },
-  );
+export const Playlist = ({ state }) => {
+  const { index, items } = state.playlist || { index: 0, items: [] };
 
   return (
     <div className="playlist">

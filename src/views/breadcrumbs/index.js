@@ -1,5 +1,3 @@
-import { useStatezero } from 'statezero-react-hooks';
-
 import { navigate } from '../../actions/navigator';
 import { toTitle } from '../../transform';
 import './style.css';
@@ -26,11 +24,9 @@ const Breadcrumb = ({
   </a>
 );
 
-export const Breadcrumbs = () => {
-  const [root, ...others] = useStatezero(
-    (state) => state.navigator.breadcrumbs || [],
-  );
-  const baseUrl = useStatezero((state) => state.config.proxy.baseUrl);
+export const Breadcrumbs = ({ state }) => {
+  const [root, ...others] = state.navigator.breadcrumbs || [];
+  const { baseUrl } = state.config.proxy;
 
   if (!root) return null;
 

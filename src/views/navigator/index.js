@@ -1,5 +1,4 @@
 import { useRef, useEffect } from 'react';
-import { useStatezero } from 'statezero-react-hooks';
 
 import {
   enqueueFilteredFiles,
@@ -37,8 +36,8 @@ const Item = ({ url, current }) => {
   );
 };
 
-export const Navigator = () => {
-  const navigatorState = useStatezero((state) => state.navigator || {});
+export const Navigator = ({ state }) => {
+  const navigatorState = state.navigator || {};
   const {
     current,
     filter,

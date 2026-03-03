@@ -4,15 +4,15 @@ import { Player } from '../player';
 import { Playlist } from '../playlist';
 import './style.css';
 
-export const App = () => (
+export const App = ({ state }) => (
   <div className="app">
     <div className="app__navigation">
-      <Config />
-      <Navigator />
+      <Config state={state} />
+      <Navigator state={state} />
     </div>
     <div className="app__media">
-      <Player />
-      <Playlist />
+      <Player state={state} />
+      <Playlist state={state} />
     </div>
   </div>
 );

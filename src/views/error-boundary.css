@@ -1,0 +1,18 @@
+.error-boundary {
+  padding: 2rem;
+  text-align: center;
+}
+
+.error-boundary h2 {
+  color: var(--error-color, #ff4444);
+  margin-bottom: 1rem;
+}
+
+.error-boundary p {
+  opacity: 0.7;
+  margin-bottom: 1rem;
+}
+
+.error-boundary button {
+  cursor: pointer;
+}

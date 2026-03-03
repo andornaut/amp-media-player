@@ -3,39 +3,46 @@ import { createRoot } from 'react-dom/client';
 import { initState } from './actions/init';
 import { navigateToDefault } from './actions/navigator';
 import { initKeyboard } from './keyboard';
-import { getState, subscribeSync, subscribeOnce } from './state';
+import {
+  getState, subscribe, subscribeSync, subscribeOnce,
+} from './state';
 import { App } from './views/app';
+import { ErrorBoundary } from './views/error-boundary';
 
-initState();
-initKeyboard();
+const root = createRoot(document.getElementById('root') || document.body);
 
-const container = document.getElementById('root');
-if (!container) {
-  const rootDiv = document.createElement('div');
-  rootDiv.id = 'root';
-  document.body.appendChild(rootDiv);
-  const root = createRoot(rootDiv);
-  root.render(<App />);
-} else {
-  const root = createRoot(container);
-  root.render(<App />);
-}
+const renderApp = (state) => {
+  root.render(
+    <ErrorBoundary>
+      <App state={state} />
+    </ErrorBoundary>,
+  );
+};
 
-subscribeOnce(navigateToDefault, 'config.proxy');
+const init = async () => {
+  await initState();
+  subscribe(renderApp);
 
-if ('serviceWorker' in navigator) {
-  // This service worker adds an "Authorization" header to fetch requests,
-  // which avoids having the browser prompt for credentials.
+  initKeyboard();
 
-  navigator.serviceWorker.addEventListener('message', (event) => {
-    event.ports[0].postMessage(getState('config.proxy'));
-  });
+  const state = getState();
+  renderApp(state);
 
-  navigator.serviceWorker.register('./worker.js');
+  subscribeOnce(navigateToDefault, 'config.proxy');
 
-  subscribeSync(() => {
-    navigator.serviceWorker.ready.then((registration) => {
-      registration.active?.postMessage('invalidate-cache');
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      event.ports[0].postMessage(getState('config.proxy'));
     });
-  }, 'config.proxy');
-}
+
+    navigator.serviceWorker.register('./worker.js');
+
+    subscribeSync(() => {
+      navigator.serviceWorker.ready.then((registration) => {
+        registration.active?.postMessage('invalidate-cache');
+      });
+    }, 'config.proxy');
+  }
+};
+
+init();
