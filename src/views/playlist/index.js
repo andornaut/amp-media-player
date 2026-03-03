@@ -16,7 +16,7 @@ const onClickRemove = (event) => {
 
 const clearButton = () => html`<button class="playlist__clear-button" @click=${resetPlaylist}>Clear playlist</button>`;
 
-const item = index => (url, i) => {
+const item = (index) => (url, i) => {
   const cssClass = `playlist__item${i === index ? ' playlist__item--active' : ''}`;
   const filename = toFilename(url);
   return html`<span class=${cssClass}>

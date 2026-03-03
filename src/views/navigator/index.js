@@ -14,7 +14,7 @@ import { isFile } from '../../helpers';
 import { toFilename } from '../../transform';
 import './style.css';
 
-const onClickAnchor = action => (event) => {
+const onClickAnchor = (action) => (event) => {
   event.preventDefault();
   action(event.target.href);
 };
@@ -31,7 +31,7 @@ const onSubmit = (event) => {
 const addAllButton = html`
   <button class="navigator__add-all-button" @click=${enqueueFilteredFiles}>Add all files</button>`;
 
-const item = current => (url) => {
+const item = (current) => (url) => {
   const action = isFile(url) ? enqueue : navigate;
   const cssClass = `navigator__item${url === current ? ' navigator__item--active' : ''}`;
   return html`
@@ -40,7 +40,7 @@ const item = current => (url) => {
     </a>`;
 };
 
-const searchForm = filter => html`
+const searchForm = (filter) => html`
   <form class="navigator__search-form" name="search" @submit=${onSubmit}>
     <input class="navigator__search-input input" @input=${onInputSearchFilter} type="search" .value=${filter}>
   </form>`;

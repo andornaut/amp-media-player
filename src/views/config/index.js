@@ -51,7 +51,7 @@ const form = ({ baseUrl, username = '', password = '' }) => html`
     </div>
   </form>`;
 
-const header = isShortcutsModalOpen => html`
+const header = (isShortcutsModalOpen) => html`
   <header class="config__form config__form--closed">
     <div class="config__buttons">
       <button @click=${openForm}>Edit</button>

@@ -2,7 +2,7 @@ import { isFile } from '../../helpers';
 import { toFilename, trimTrailingForwardSlash } from '../../transform';
 
 // Workaround error: TypeError: "/example/ is not a valid URL."
-const toAbsoluteUrl = url => (url.startsWith('/') ? `${window.location.origin}${url}` : url);
+const toAbsoluteUrl = (url) => (url.startsWith('/') ? `${window.location.origin}${url}` : url);
 
 export const getBreadcrumbs = ({ url }, { config: { proxy: { baseUrl } = {} } = {} }) => {
   if (!baseUrl) {
@@ -45,7 +45,7 @@ export const getFilteredItems = ({ filter, items }) => {
     return items;
   }
   filter = filter.toLowerCase();
-  return items.filter(url =>
+  return items.filter((url) =>
     toFilename(url)
       .toLowerCase()
       .includes(filter));

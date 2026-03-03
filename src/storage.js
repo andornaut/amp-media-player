@@ -8,7 +8,7 @@ export const fromStorage = () => {
   let state = null;
   try {
     state = JSON.parse(item);
-  } catch (e) {
+  } catch {
     localStorage.removeItem(STORAGE_KEY);
   }
   return state;

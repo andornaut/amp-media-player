@@ -18,7 +18,7 @@ const breadcrumb = (className, label, title, url) => html`
 
 const toRoot = (url, title) => breadcrumb('breadcrumbs__item--root', title, ROOT_SHORTCUT, url);
 
-const toSubdir = url => breadcrumb('breadcrumbs__item--subdir', toTitle(url), UP_SHORTCUT, url);
+const toSubdir = (url) => breadcrumb('breadcrumbs__item--subdir', toTitle(url), UP_SHORTCUT, url);
 
 export const breadcrumbs = view(({ render, state }) => {
   const {

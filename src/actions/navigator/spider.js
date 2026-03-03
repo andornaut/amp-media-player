@@ -2,15 +2,15 @@ import { toFilename } from '../../transform';
 
 const EXCLUDED_ANCHOR_NAMES = ['.', '..', 'description', 'last modified', 'name', 'parent directory', 'size'];
 
-const compact = arr => arr.filter(x => x);
+const compact = (arr) => arr.filter((x) => x);
 
-const unique = arr => [...new Set(arr)]; // Sets are iterated in insertion order.
+const unique = (arr) => [...new Set(arr)]; // Sets are iterated in insertion order.
 
-const toAbsoluteUrl = url => (url.startsWith('/') ? `${window.location.origin}${url}` : url);
+const toAbsoluteUrl = (url) => (url.startsWith('/') ? `${window.location.origin}${url}` : url);
 
-const toAnchors = text => Array.from(new DOMParser().parseFromString(text, 'text/html').getElementsByTagName('a'));
+const toAnchors = (text) => Array.from(new DOMParser().parseFromString(text, 'text/html').getElementsByTagName('a'));
 
-const toUrl = baseUrl => (anchor) => {
+const toUrl = (baseUrl) => (anchor) => {
   if (anchor.hash || !anchor.pathname || anchor.pathname === '/' || anchor.search) {
     return null;
   }
@@ -48,9 +48,9 @@ const requestOptions = ({ username, password }) => {
   return { headers: { Authorization: `Basic ${btoa(credentials)}` } };
 };
 
-const responseToText = response => response.text();
+const responseToText = (response) => response.text();
 
-const extractUrls = baseUrl => text => unique(compact(toAnchors(text).map(toUrl(baseUrl))));
+const extractUrls = (baseUrl) => (text) => unique(compact(toAnchors(text).map(toUrl(baseUrl))));
 
 export const scrapeUrls = (url, config) =>
   fetch(url, requestOptions(config))

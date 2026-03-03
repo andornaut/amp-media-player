@@ -37,7 +37,7 @@ subscribe(({ isPlaying, url }) => {
   }
 }, 'player');
 
-const title = url => html`
+const title = (url) => html`
   <div class="player__title">
     ${toTitle(url)}<a class="player__clear-button" @click=${resetPlayer} title="Clear">✖</a>
   </div>`;

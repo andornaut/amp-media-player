@@ -1,7 +1,6 @@
-const CleanWebpackPlugin = require('clean-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const path = require('path');
-const webpack = require('webpack');
 
 const distPath = path.join(__dirname, 'dist');
 const srcPath = path.join(__dirname, 'src');
@@ -27,18 +26,17 @@ module.exports = (env, argv = {}) => {
       // Fix HMR in worker.js https://github.com/webpack/webpack/issues/6525
       globalObject: 'typeof self !== "undefined" ? self : this',
     },
-    plugins: [new CopyWebpackPlugin(['index.html', { from: 'static/**/*' }])],
+    plugins: [new CopyWebpackPlugin({ patterns: ['index.html', { from: 'static/**/*' }] })],
   };
 
   if (mode === 'development') {
     config.devServer = {
-      contentBase: distPath,
+      static: distPath,
       historyApiFallback: {
         index: '/index.html',
       },
       host: '0.0.0.0',
     };
-    config.plugins.push(new webpack.HotModuleReplacementPlugin());
   }
 
   if (mode === 'production') {
