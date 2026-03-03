@@ -30,21 +30,6 @@ button {
   min-height: 100vh;
 }
 
-@media (prefers-color-scheme: dark) {
-  .app {
-    --config-bg: #2d3e3e;
-    --highlight-border: #d33682;
-    --navigator-bg: #073642;
-    --player-bg: #002b36;
-    --playlist-bg: #002b36;
-    --text-color: #839496;
-  }
-
-  body {
-    background-color: #002b36;
-  }
-}
-
 .app__media,
 .app__navigation {
   display: grid;

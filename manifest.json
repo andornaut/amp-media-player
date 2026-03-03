@@ -4,8 +4,8 @@
   "description": "A lightweight web-app that enables you to stream music from web-server directory indexes",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#002b36",
-  "theme_color": "#002b36",
+  "background_color": "#eee8d5",
+  "theme_color": "#fffbd6",
   "icons": [
     {
       "src": "static/favicon.png",
