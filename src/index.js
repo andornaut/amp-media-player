@@ -1,5 +1,8 @@
 import {
-  getState, renderView, subscribeSync, subscribeOnce,
+  getState,
+  renderView,
+  subscribeSync,
+  subscribeOnce,
 } from 'jetstart/src';
 
 import { initState } from './actions/init';
@@ -12,7 +15,7 @@ initKeyboard();
 renderView(app(), document.body);
 subscribeOnce(navigateToDefault, 'config.proxy');
 
-if (navigator.serviceWorker) {
+if ('serviceWorker' in navigator) {
   // This service worker adds an "Authorization" header to fetch requests,
   // which avoids having the browser prompt for credentials.
 
@@ -23,11 +26,8 @@ if (navigator.serviceWorker) {
   navigator.serviceWorker.register('./worker.js');
 
   subscribeSync(() => {
-    const { controller } = navigator.serviceWorker;
-
-    // May be null when this script is first loaded.
-    if (controller) {
-      controller.postMessage('invalidate-cache');
-    }
+    navigator.serviceWorker.ready.then((registration) => {
+      registration.active?.postMessage('invalidate-cache');
+    });
   }, 'config.proxy');
 }

@@ -16,7 +16,7 @@ module.exports = [
   ...compat.extends('airbnb-base'),
   {
     languageOptions: {
-      ecmaVersion: 2019,
+      ecmaVersion: 2020,
       sourceType: 'module',
       globals: {
         ...globals.browser,

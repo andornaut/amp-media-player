@@ -1,11 +1,7 @@
-export const cycle = (length, index) => {
-  if (index >= length) {
-    return 0;
-  }
-  if (index < 0) {
-    return length - 1 || 0;
-  }
-  return index;
-};
+export const cycle = (length, index) => (index + length) % length;
 
 export const isFile = (url) => !url.endsWith('/');
+
+export const compact = (arr) => arr.filter(Boolean);
+
+export const unique = (arr) => [...new Set(arr)];
