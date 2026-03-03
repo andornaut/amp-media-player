@@ -8,6 +8,7 @@ const log = (msg) => console.log(`[${new Date().toLocaleTimeString()}] ${msg}`);
 
 const copyStatic = () => {
   cpSync('index.html', 'dist/index.html');
+  cpSync('manifest.json', 'dist/manifest.json');
   cpSync('static', 'dist/static', { recursive: true });
 };
 

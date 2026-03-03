@@ -1,0 +1,16 @@
+{
+  "name": "AMP Media Player",
+  "short_name": "AMP",
+  "description": "A lightweight web-app that enables you to stream music from web-server directory indexes",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#002b36",
+  "theme_color": "#002b36",
+  "icons": [
+    {
+      "src": "static/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

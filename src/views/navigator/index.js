@@ -60,7 +60,9 @@ export const Navigator = ({ state }) => {
 
   if (error) {
     return (
-      <div className="navigator__status navigator__status--error">{error}</div>
+      <div className="navigator__status navigator__status--error" role="alert">
+        {error}
+      </div>
     );
   }
 
@@ -90,12 +92,14 @@ export const Navigator = ({ state }) => {
             onInput={onInputSearchFilter}
             type="search"
             defaultValue={filter}
+            aria-label="Search files"
           />
         </form>
       )}
       {filteredFiles.length > 0 && (
         <button
           className="navigator__add-all-button"
+          type="button"
           onClick={enqueueFilteredFiles}
         >
           Add all files

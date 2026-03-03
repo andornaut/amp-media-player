@@ -30,9 +30,10 @@ const ConfigForm = ({ proxy }) => {
   return (
     <form className="config__form config__form--open" onSubmit={onSubmit}>
       <div className="config__inputs">
-        <label className="config__label">
+        <label className="config__label" htmlFor="baseUrl">
           URL
           <input
+            id="baseUrl"
             className="config__input input"
             name="baseUrl"
             placeholder="https://example.com/"
@@ -42,18 +43,20 @@ const ConfigForm = ({ proxy }) => {
           />
         </label>
 
-        <label className="config__label">
+        <label className="config__label" htmlFor="username">
           Username
           <input
+            id="username"
             className="config__input input"
             name="username"
             defaultValue={username}
           />
         </label>
 
-        <label className="config__label">
+        <label className="config__label" htmlFor="password">
           Password
           <input
+            id="password"
             className="config__input input"
             name="password"
             type="password"
@@ -74,8 +77,12 @@ const ConfigForm = ({ proxy }) => {
 const Header = ({ isShortcutsModalOpen, state }) => (
   <header className="config__form config__form--closed">
     <div className="config__buttons">
-      <button onClick={openForm}>Edit</button>
-      <button onClick={toggleShortcutsHelp}>Help</button>
+      <button type="button" onClick={openForm}>
+        Edit
+      </button>
+      <button type="button" onClick={toggleShortcutsHelp}>
+        Help
+      </button>
       {isShortcutsModalOpen && <Shortcuts />}
     </div>
     <Breadcrumbs state={state} />

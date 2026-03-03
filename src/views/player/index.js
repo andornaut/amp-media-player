@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react';
 
 import './style.css';
-import { resetPlayer, togglePlayPause } from '../../actions/player';
+import { resetPlayer, togglePlayPause, setVolume } from '../../actions/player';
 import {
   selectNextPlaylistItem,
   selectPreviousPlaylistItem,
@@ -9,7 +9,7 @@ import {
 import { toTitle } from '../../transform';
 
 export const Player = ({ state }) => {
-  const { isPlaying, url } = state.player || {};
+  const { isPlaying, url, volume = 1 } = state.player || {};
   const audioRef = useRef(null);
 
   useEffect(() => {
@@ -17,6 +17,11 @@ export const Player = ({ state }) => {
     if (!audio) return;
 
     audio.addEventListener('ended', selectNextPlaylistItem);
+
+    const onVolumeChange = () => {
+      setVolume(audio.volume);
+    };
+    audio.addEventListener('volumechange', onVolumeChange);
 
     if ('mediaSession' in navigator) {
       navigator.mediaSession.setActionHandler('play', togglePlayPause);
@@ -34,12 +39,18 @@ export const Player = ({ state }) => {
     // eslint-disable-next-line consistent-return
     return () => {
       audio.removeEventListener('ended', selectNextPlaylistItem);
+      audio.removeEventListener('volumechange', onVolumeChange);
     };
   }, []);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
+
+    // Restore volume
+    if (Math.abs(audio.volume - volume) > 0.01) {
+      audio.volume = volume;
+    }
 
     if (!url) {
       audio.src = '';
@@ -73,7 +84,7 @@ export const Player = ({ state }) => {
         navigator.mediaSession.playbackState = 'paused';
       }
     }
-  }, [isPlaying, url]);
+  }, [isPlaying, url, volume]);
 
   return (
     <div className="player">
@@ -83,13 +94,14 @@ export const Player = ({ state }) => {
       {url && (
         <div className="player__title">
           {toTitle(url)}
-          <a
+          <button
             className="player__clear-button"
+            type="button"
             onClick={resetPlayer}
             title="Clear"
           >
             ✖
-          </a>
+          </button>
         </div>
       )}
     </div>
