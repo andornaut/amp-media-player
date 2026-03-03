@@ -6,8 +6,11 @@ import {
 } from "../../actions/playlist";
 import { toFilename } from "../../transform";
 
-const Item = ({ currentIndex, index, url }) => {
-  const cssClass = `playlist__item${index === currentIndex ? " playlist__item--active" : ""}`;
+const Item = ({ currentIndex, index, isPlaying, url }) => {
+  let cssClass = `playlist__item${index === currentIndex ? " playlist__item--active" : ""}`;
+  if (isPlaying) {
+    cssClass += " playlist__item--playing";
+  }
   const filename = toFilename(url);
 
   const onClickPlay = (event) => {
@@ -44,6 +47,7 @@ const Item = ({ currentIndex, index, url }) => {
 
 export const Playlist = ({ state }) => {
   const { index, items } = state.playlist || { index: 0, items: [] };
+  const playerUrl = state.player?.url;
 
   return (
     <div className="playlist">
@@ -58,7 +62,13 @@ export const Playlist = ({ state }) => {
       )}
       <div className="playlist__list">
         {items.map((url, i) => (
-          <Item key={`${url}-${i}`} url={url} index={i} currentIndex={index} />
+          <Item
+            key={`${url}-${i}`}
+            currentIndex={index}
+            index={i}
+            isPlaying={i === index && !!playerUrl}
+            url={url}
+          />
         ))}
       </div>
     </div>

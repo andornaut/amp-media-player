@@ -41,3 +41,8 @@
 .playlist__item--active {
   border-color: var(--highlight-border);
 }
+
+.playlist__item--playing .playlist__play::before {
+  content: "▶ ";
+  font-weight: bold;
+}
