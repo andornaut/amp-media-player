@@ -9,6 +9,15 @@ import {
 import { App } from './views/app';
 import { ErrorBoundary } from './views/error-boundary';
 
+// Handle service worker messages as early as possible to avoid deadlocks.
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data === 'get-configuration') {
+      event.ports[0].postMessage(getState('config.proxy'));
+    }
+  });
+}
+
 const root = createRoot(document.getElementById('root') || document.body);
 
 const renderApp = (state) => {
@@ -31,10 +40,6 @@ const init = async () => {
   subscribeOnce(navigateToDefault, 'config.proxy');
 
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.addEventListener('message', (event) => {
-      event.ports[0].postMessage(getState('config.proxy'));
-    });
-
     navigator.serviceWorker.register('./worker.js');
 
     subscribeSync(() => {

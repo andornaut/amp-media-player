@@ -21,36 +21,38 @@ const toAnchors = (text) =>
       .getElementsByTagName('a'),
   );
 
-const toUrl = (baseUrl) => (anchor) => {
-  if (
-    anchor.hash
-    || !anchor.pathname
-    || anchor.pathname === '/'
-    || anchor.search
-  ) {
-    return null;
-  }
-  const name = toFilename(anchor.textContent);
-  if (EXCLUDED_ANCHOR_NAMES.includes(name.toLowerCase())) {
-    return null;
-  }
+const toUrl = (baseAbsoluteUrl) => {
+  const baseUrlObj = new URL(baseAbsoluteUrl);
+  return (anchor) => {
+    if (
+      anchor.hash
+      || !anchor.pathname
+      || anchor.pathname === '/'
+      || anchor.search
+    ) {
+      return null;
+    }
+    const name = toFilename(anchor.textContent);
+    if (EXCLUDED_ANCHOR_NAMES.includes(name.toLowerCase())) {
+      return null;
+    }
 
-  // Workaround error when baseUrl is relative, eg. "/example/": TypeError: "/example/ is not a valid URL."
-  baseUrl = toAbsoluteUrl(baseUrl);
-  const url = new URL(baseUrl);
-  const pathname = anchor.pathname.replace(
-    window.location.pathname,
-    url.pathname,
-  );
-  if (!pathname) {
-    // Ignore anchors like <a href="">
-    return null;
-  }
-  url.pathname = pathname;
-  if (url.href === baseUrl) {
-    return null;
-  }
-  return url.href;
+    const pathname = anchor.pathname.replace(
+      window.location.pathname,
+      baseUrlObj.pathname,
+    );
+    if (!pathname) {
+      // Ignore anchors like <a href="">
+      return null;
+    }
+
+    const url = new URL(baseUrlObj.href);
+    url.pathname = pathname;
+    if (url.href === baseUrlObj.href) {
+      return null;
+    }
+    return url.href;
+  };
 };
 
 const requestOptions = ({ username, password }) => {
@@ -69,8 +71,11 @@ const requestOptions = ({ username, password }) => {
 
 const responseToText = (response) => response.text();
 
-const extractUrls = (baseUrl) => (text) =>
-  unique(compact(toAnchors(text).map(toUrl(baseUrl))));
+const extractUrls = (baseUrl) => {
+  const baseAbsoluteUrl = toAbsoluteUrl(baseUrl);
+  const toUrlWithBase = toUrl(baseAbsoluteUrl);
+  return (text) => unique(compact(toAnchors(text).map(toUrlWithBase)));
+};
 
 export const scrapeUrls = (url, config) =>
   fetch(url, requestOptions(config))
