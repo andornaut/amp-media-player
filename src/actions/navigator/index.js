@@ -63,23 +63,29 @@ const transition = (cb) => {
 };
 
 export const navigate = action(async ({ commit, state }, url) => {
+  const cachedItems = getFromCache(url);
+  if (cachedItems) {
+    transition(() => {
+      Object.assign(state.navigator, {
+        url,
+        items: cachedItems,
+        isLoading: false,
+        error: null,
+      });
+      commit(state);
+    });
+    return;
+  }
+
   clearNavigator(state);
   state.navigator.url = url;
   state.navigator.isLoading = true;
   commit(state);
 
   try {
-    const itemsPromise = scrapeUrls(url, state.config.proxy)
-      .then((items) => {
-        setInCache(url, items);
-        return items;
-      })
-      .catch((err) => {
-        removeFromCache(url);
-        throw err;
-      });
+    const items = await scrapeUrls(url, state.config.proxy);
+    setInCache(url, items);
 
-    const items = getFromCache(url) || (await itemsPromise);
     transition(() => {
       Object.assign(state.navigator, {
         items,

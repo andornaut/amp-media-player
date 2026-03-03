@@ -2,6 +2,7 @@ import { action, subscribe } from '../state';
 import { fromStorage, toStorage } from '../storage';
 import { resetConfig } from './config';
 import { defineNavigationGetters, resetNavigation } from './navigator';
+import { setInCache } from './navigator/cache';
 import { resetPlayer } from './player';
 import { definePlaylistGetters, resetPlaylist } from './playlist';
 
@@ -17,6 +18,10 @@ export const hydrateNavigator = action(
     state.navigator.error = null;
     commit(state);
     defineNavigationGetters();
+
+    if (state.navigator.url && state.navigator.items) {
+      setInCache(state.navigator.url, state.navigator.items);
+    }
   },
 );
 
