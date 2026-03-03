@@ -20,6 +20,6 @@ jobs:
 
       - run: npm ci --legacy-peer-deps
 
-      - run: npm run static-analysis
+      - run: npm run lint
 
-      - run: npm run build-production
+      - run: npm run build:prod

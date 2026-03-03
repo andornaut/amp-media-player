@@ -12,6 +12,7 @@ const compat = new FlatCompat({
 });
 
 module.exports = [
+  { ignores: ['dist/**', 'node_modules/**'] },
   ...compat.extends('airbnb-base'),
   {
     languageOptions: {

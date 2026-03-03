@@ -34,10 +34,11 @@
   },
   "scripts": {
     "build": "node build.mjs",
-    "build-production": "node build.mjs --production",
+    "build:prod": "node build.mjs --production",
     "format": "prettier-eslint --write '{src/**/,tests/**/,./}*.{css,js,json,jsx,md,mjs}'",
+    "lint": "eslint --max-warnings 0 .",
+    "lint:fix": "eslint --fix .",
     "prepare": "husky",
-    "static-analysis": "eslint --max-warnings 0 \"{src,tests}/**/*.{js,jsx}\" build.mjs",
-    "server": "node build.mjs --watch"
+    "watch": "node build.mjs --watch"
   }
 }
