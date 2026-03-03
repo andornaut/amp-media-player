@@ -25,8 +25,13 @@ module.exports = (env, argv = {}) => {
     output: {
       // Fix HMR in worker.js https://github.com/webpack/webpack/issues/6525
       globalObject: 'typeof self !== "undefined" ? self : this',
+      path: distPath,
     },
-    plugins: [new CopyWebpackPlugin({ patterns: ['index.html', { from: 'static/**/*' }] })],
+    plugins: [
+      new CopyWebpackPlugin({
+        patterns: ['index.html', { from: 'static/**/*' }],
+      }),
+    ],
   };
 
   if (mode === 'development') {
