@@ -1,5 +1,3 @@
-import { action, defineGetter, getState } from 'jetstart/src';
-
 import { cycle, isFile } from '../../helpers';
 import { enqueue } from '../playlist';
 import {
@@ -12,6 +10,7 @@ import {
   getFilteredItems,
 } from './getters';
 import { scrapeUrls } from './spider';
+import { action, defineGetter, getState } from '../../state';
 
 export const defineNavigationGetters = () => {
   defineGetter('navigator.breadcrumbs', getBreadcrumbs);
@@ -21,6 +20,7 @@ export const defineNavigationGetters = () => {
 };
 
 const clearNavigator = (state) => {
+  state.navigator = state.navigator || {};
   Object.assign(state.navigator, {
     filter: '',
     index: 0,
@@ -97,19 +97,14 @@ export const navigate = action(async ({ commit, state }, url) => {
   }
 });
 
-export const refresh = action(
-  ({
-    state: {
-      navigator: { url },
-    },
-  }) => {
-    if (!url) {
-      return;
-    }
-    removeFromCache(url);
-    navigate(url);
-  },
-);
+export const refresh = action(({ state }) => {
+  const { url } = state.navigator;
+  if (!url) {
+    return;
+  }
+  removeFromCache(url);
+  navigate(url);
+});
 
 export const navigateBackward = action(({ state }) => {
   const { breadcrumbs } = state.navigator;
@@ -144,7 +139,9 @@ export const selectPreviousNavigatorItem = action(({ commit, state }) => {
 });
 
 export const navigateToDefault = () => {
-  const [url, baseUrl] = getState(['navigator.url', 'config.proxy.baseUrl']);
+  const state = getState();
+  const { url } = state.navigator || {};
+  const { baseUrl } = state.config.proxy || {};
   navigate(url || baseUrl);
 };
 

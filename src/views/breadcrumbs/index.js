@@ -1,4 +1,4 @@
-import { html, repeat, view } from 'jetstart/src';
+import { useStatezero } from 'statezero-react-hooks';
 
 import { navigate } from '../../actions/navigator';
 import { toTitle } from '../../transform';
@@ -9,24 +9,48 @@ const UP_SHORTCUT = 'Shortcut: b or backspace';
 
 const onClick = (event) => {
   event.preventDefault();
-  const { href } = event.target;
+  const { href } = event.currentTarget;
   navigate(href);
 };
 
-const breadcrumb = (className, label, title, url) => html`
-  <a class=${`breadcrumbs__item ${className}`} href=${url} @click=${onClick} title=${title}>${label}</a>`;
+const Breadcrumb = ({
+  className, label, title, url,
+}) => (
+  <a
+    className={`breadcrumbs__item ${className}`}
+    href={url}
+    onClick={onClick}
+    title={title}
+  >
+    {label}
+  </a>
+);
 
-const toRoot = (url, title) => breadcrumb('breadcrumbs__item--root', title, ROOT_SHORTCUT, url);
+export const Breadcrumbs = () => {
+  const [root, ...others] = useStatezero(
+    (state) => state.navigator.breadcrumbs || [],
+  );
+  const baseUrl = useStatezero((state) => state.config.proxy.baseUrl);
 
-const toSubdir = (url) => breadcrumb('breadcrumbs__item--subdir', toTitle(url), UP_SHORTCUT, url);
+  if (!root) return null;
 
-export const breadcrumbs = view(({ render, state }) => {
-  const {
-    breadcrumbs: [root, ...others],
-  } = state.navigator;
-  render`
-    <div class=breadcrumbs>
-      ${toRoot(root, state.config.proxy.baseUrl)}
-      ${repeat(others, toSubdir)}
-    </div>`;
-});
+  return (
+    <div className="breadcrumbs">
+      <Breadcrumb
+        className="breadcrumbs__item--root"
+        label={baseUrl}
+        title={ROOT_SHORTCUT}
+        url={root}
+      />
+      {others.map((url) => (
+        <Breadcrumb
+          key={url}
+          className="breadcrumbs__item--subdir"
+          label={toTitle(url)}
+          title={UP_SHORTCUT}
+          url={url}
+        />
+      ))}
+    </div>
+  );
+};

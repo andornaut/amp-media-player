@@ -1,5 +1,4 @@
-import { action, subscribe } from 'jetstart/src';
-
+import { action, subscribe } from '../state';
 import { fromStorage, toStorage } from '../storage';
 import { resetConfig } from './config';
 import { defineNavigationGetters, resetNavigation } from './navigator';

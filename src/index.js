@@ -1,18 +1,26 @@
-import {
-  getState,
-  renderView,
-  subscribeSync,
-  subscribeOnce,
-} from 'jetstart/src';
+import { createRoot } from 'react-dom/client';
 
 import { initState } from './actions/init';
 import { navigateToDefault } from './actions/navigator';
 import { initKeyboard } from './keyboard';
-import { app } from './views/app';
+import { getState, subscribeSync, subscribeOnce } from './state';
+import { App } from './views/app';
 
 initState();
 initKeyboard();
-renderView(app(), document.body);
+
+const container = document.getElementById('root');
+if (!container) {
+  const rootDiv = document.createElement('div');
+  rootDiv.id = 'root';
+  document.body.appendChild(rootDiv);
+  const root = createRoot(rootDiv);
+  root.render(<App />);
+} else {
+  const root = createRoot(container);
+  root.render(<App />);
+}
+
 subscribeOnce(navigateToDefault, 'config.proxy');
 
 if ('serviceWorker' in navigator) {

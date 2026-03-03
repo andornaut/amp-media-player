@@ -1,21 +1,18 @@
-import { view } from 'jetstart/src';
-
-import { config } from '../config';
-import { navigator } from '../navigator';
-import { player } from '../player';
-import { playlist } from '../playlist';
+import { Config } from '../config';
+import { Navigator } from '../navigator';
+import { Player } from '../player';
+import { Playlist } from '../playlist';
 import './style.css';
 
-export const app = view(({ render }) => {
-  render`
-    <div class="app">
-      <div class="app__navigation">
-        ${config()}
-        ${navigator()}
-      </div>
-      <div class="app__media">
-        ${player()}
-        ${playlist()}
-      </div>
-    </div>`;
-});
+export const App = () => (
+  <div className="app">
+    <div className="app__navigation">
+      <Config />
+      <Navigator />
+    </div>
+    <div className="app__media">
+      <Player />
+      <Playlist />
+    </div>
+  </div>
+);

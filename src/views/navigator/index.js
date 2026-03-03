@@ -1,6 +1,5 @@
-import {
-  html, repeat, subscribe, view,
-} from 'jetstart/src';
+import { useRef, useEffect } from 'react';
+import { useStatezero } from 'statezero-react-hooks';
 
 import {
   enqueueFilteredFiles,
@@ -16,7 +15,7 @@ import './style.css';
 
 const onClickAnchor = (action) => (event) => {
   event.preventDefault();
-  action(event.target.href);
+  action(event.currentTarget.href);
 };
 
 const onInputSearchFilter = (event) => {
@@ -28,73 +27,86 @@ const onSubmit = (event) => {
   navigateForward();
 };
 
-const addAllButton = html` <button
-  class="navigator__add-all-button"
-  @click=${enqueueFilteredFiles}
->
-  Add all files
-</button>`;
-
-const item = (current) => (url) => {
+const Item = ({ url, current }) => {
   const action = isFile(url) ? enqueue : navigate;
   const cssClass = `navigator__item${url === current ? ' navigator__item--active' : ''}`;
-  return html` <a class=${cssClass} href=${url} @click=${onClickAnchor(action)}>
-    ${toFilename(url)}
-  </a>`;
+  return (
+    <a className={cssClass} href={url} onClick={onClickAnchor(action)}>
+      {toFilename(url)}
+    </a>
+  );
 };
 
-const searchForm = (filter) =>
-  html` <form class="navigator__search-form" name="search" @submit=${onSubmit}>
-    <input
-      class="navigator__search-input input"
-      @input=${onInputSearchFilter}
-      type="search"
-      .value=${filter}
-    />
-  </form>`;
-
-export const navigator = view(({ render, state }) => {
+export const Navigator = () => {
+  const navigatorState = useStatezero((state) => state.navigator || {});
   const {
     current,
     filter,
-    filteredFiles,
-    filteredItems,
-    items,
+    filteredFiles = [],
+    filteredItems = [],
+    items = [],
     isLoading,
     error,
-  } = state.navigator;
+    shouldTriggerFocus,
+  } = navigatorState;
+
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (shouldTriggerFocus && inputRef.current) {
+      inputRef.current.focus();
+      disableFocusTrigger();
+    }
+  }, [shouldTriggerFocus]);
 
   if (error) {
-    render`<div class="navigator__status navigator__status--error">${error}</div>`;
-    return;
+    return (
+      <div className="navigator__status navigator__status--error">{error}</div>
+    );
   }
 
   if (isLoading && !items.length) {
-    render`<div class="navigator__status navigator__status--loading">Loading...</div>`;
-    return;
+    return (
+      <div className="navigator__status navigator__status--loading">
+        Loading...
+      </div>
+    );
   }
 
   if (!isLoading && !items.length) {
-    render`<div class="navigator__status">No files found.</div>`;
-    return;
+    return <div className="navigator__status">No files found.</div>;
   }
 
-  render`
-    <div class="navigator">
-      ${items.length ? searchForm(filter) : null}
-      ${filteredFiles.length ? addAllButton : null}
-      <div class="navigator__list">
-        ${repeat(filteredItems, item(current))}
+  return (
+    <div className="navigator">
+      {items.length > 0 && (
+        <form
+          className="navigator__search-form"
+          name="search"
+          onSubmit={onSubmit}
+        >
+          <input
+            ref={inputRef}
+            className="navigator__search-input input"
+            onInput={onInputSearchFilter}
+            type="search"
+            defaultValue={filter}
+          />
+        </form>
+      )}
+      {filteredFiles.length > 0 && (
+        <button
+          className="navigator__add-all-button"
+          onClick={enqueueFilteredFiles}
+        >
+          Add all files
+        </button>
+      )}
+      <div className="navigator__list">
+        {filteredItems.map((url) => (
+          <Item key={url} url={url} current={current} />
+        ))}
       </div>
-    </div>`;
-});
-
-subscribe(({ shouldTriggerFocus }) => {
-  if (shouldTriggerFocus) {
-    const el = document.querySelector('.navigator__search-input');
-    if (el) {
-      el.focus();
-    }
-    disableFocusTrigger();
-  }
-}, 'navigator');
+    </div>
+  );
+};

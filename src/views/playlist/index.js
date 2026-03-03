@@ -1,38 +1,65 @@
-import { html, repeat, view } from 'jetstart/src';
+import { useStatezero } from 'statezero-react-hooks';
 
 import './style.css';
-import { dequeueIndex, resetPlaylist, selectIndex } from '../../actions/playlist';
+import {
+  dequeueIndex,
+  resetPlaylist,
+  selectIndex,
+} from '../../actions/playlist';
 import { toFilename } from '../../transform';
 
-const onClickPlay = (event) => {
-  event.preventDefault();
-  selectIndex(parseInt(event.target.dataset.index, 10));
-};
-
-const onClickRemove = (event) => {
-  event.preventDefault();
-  dequeueIndex(parseInt(event.target.dataset.index, 10));
-};
-
-const clearButton = () => html`<button class="playlist__clear-button" @click=${resetPlaylist}>Clear playlist</button>`;
-
-const item = (index) => (url, i) => {
-  const cssClass = `playlist__item${i === index ? ' playlist__item--active' : ''}`;
+const Item = ({ url, index, currentIndex }) => {
+  const cssClass = `playlist__item${index === currentIndex ? ' playlist__item--active' : ''}`;
   const filename = toFilename(url);
-  return html`<span class=${cssClass}>
-      <a data-index=${i} href=${url} class="playlist__play" @click=${onClickPlay} title="Play">${filename}</a>
-      <button data-index=${i} class="playlist__remove-button" @click="${onClickRemove}" 
-        title="Remove from playlist">✖</button>
-    </span>`;
+
+  const onClickPlay = (event) => {
+    event.preventDefault();
+    selectIndex(index);
+  };
+
+  const onClickRemove = (event) => {
+    event.preventDefault();
+    dequeueIndex(index);
+  };
+
+  return (
+    <span className={cssClass}>
+      <a
+        href={url}
+        className="playlist__play"
+        onClick={onClickPlay}
+        title="Play"
+      >
+        {filename}
+      </a>
+      <button
+        className="playlist__remove-button"
+        onClick={onClickRemove}
+        title="Remove from playlist"
+      >
+        ✖
+      </button>
+    </span>
+  );
 };
 
-export const playlist = view(({ render, state }) => {
-  const { index, items } = state.playlist;
-  render`
-    <div class="playlist">
-      ${items.length ? clearButton() : null}      
-      <div class="playlist__list">
-        ${repeat(items, item(index))}
+export const Playlist = () => {
+  const { index, items } = useStatezero(
+    (state) => state.playlist || { index: 0, items: [] },
+  );
+
+  return (
+    <div className="playlist">
+      {items.length > 0 && (
+        <button className="playlist__clear-button" onClick={resetPlaylist}>
+          Clear playlist
+        </button>
+      )}
+      <div className="playlist__list">
+        {items.map((url, i) => (
+          <Item key={`${url}-${i}`} url={url} index={i} currentIndex={index} />
+        ))}
       </div>
-    </div>`;
-});
+    </div>
+  );
+};

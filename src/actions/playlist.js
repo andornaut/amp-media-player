@@ -1,6 +1,5 @@
-import { action, defineGetter } from 'jetstart/src';
-
 import { cycle } from '../helpers';
+import { action, defineGetter } from '../state';
 import { play } from './player';
 
 const getCurrent = ({ index, items }) => items[index];
@@ -19,7 +18,7 @@ export const dequeueIndex = action(({ commit, state }, index) => {
   const { items } = state.playlist;
   items.splice(index, 1);
   if (index >= items.length) {
-    state.playlist.index = items.length - 1;
+    state.playlist.index = Math.max(0, items.length - 1);
   }
   commit(state);
 });

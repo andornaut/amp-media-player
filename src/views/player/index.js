@@ -1,4 +1,5 @@
-import { html, subscribe, view } from 'jetstart/src';
+import { useRef, useEffect } from 'react';
+import { useStatezero } from 'statezero-react-hooks';
 
 import './style.css';
 import { resetPlayer, togglePlayPause } from '../../actions/player';
@@ -8,78 +9,90 @@ import {
 } from '../../actions/playlist';
 import { toTitle } from '../../transform';
 
-const createPlayer = () => {
-  const el = document.createElement('audio');
-  el.classList.add('player__media');
-  el.setAttribute('controls', '');
-  el.setAttribute('preload', '');
-  el.textContent = 'Sorry, this media format is not supported.';
-  return el;
-};
+export const Player = () => {
+  const { isPlaying, url } = useStatezero((state) => state.player || {});
+  const audioRef = useRef(null);
 
-const PLAYER_EL = createPlayer();
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
 
-PLAYER_EL.addEventListener('ended', selectNextPlaylistItem);
+    audio.addEventListener('ended', selectNextPlaylistItem);
 
-if ('mediaSession' in navigator) {
-  navigator.mediaSession.setActionHandler('play', togglePlayPause);
-  navigator.mediaSession.setActionHandler('pause', togglePlayPause);
-  navigator.mediaSession.setActionHandler(
-    'previoustrack',
-    selectPreviousPlaylistItem,
-  );
-  navigator.mediaSession.setActionHandler('nexttrack', selectNextPlaylistItem);
-}
-
-subscribe(({ isPlaying, url }) => {
-  if (!url) {
-    // Removing the attribute doesn't seem to work.
-    PLAYER_EL.setAttribute('src', '');
-    PLAYER_EL.pause();
     if ('mediaSession' in navigator) {
-      navigator.mediaSession.playbackState = 'none';
-      navigator.mediaSession.metadata = null;
+      navigator.mediaSession.setActionHandler('play', togglePlayPause);
+      navigator.mediaSession.setActionHandler('pause', togglePlayPause);
+      navigator.mediaSession.setActionHandler(
+        'previoustrack',
+        selectPreviousPlaylistItem,
+      );
+      navigator.mediaSession.setActionHandler(
+        'nexttrack',
+        selectNextPlaylistItem,
+      );
     }
-    return;
-  }
 
-  if (isPlaying) {
-    const urlAttr = PLAYER_EL.src;
-    if (urlAttr !== url) {
-      PLAYER_EL.setAttribute('src', url);
+    // eslint-disable-next-line consistent-return
+    return () => {
+      audio.removeEventListener('ended', selectNextPlaylistItem);
+    };
+  }, []);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (!url) {
+      audio.src = '';
+      audio.pause();
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'none';
+        navigator.mediaSession.metadata = null;
+      }
+      return;
     }
-    PLAYER_EL.play();
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.playbackState = 'playing';
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: toTitle(url),
-        artist: 'amp-media-player',
-        album: 'amp-media-player',
+
+    if (audio.src !== url) {
+      audio.src = url;
+    }
+
+    if (isPlaying) {
+      audio.play().catch(() => {
+        /* ignore play() interruptions */
       });
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'playing';
+        navigator.mediaSession.metadata = new window.MediaMetadata({
+          title: toTitle(url),
+          artist: 'amp-media-player',
+          album: 'amp-media-player',
+        });
+      }
+    } else {
+      audio.pause();
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'paused';
+      }
     }
-  } else {
-    PLAYER_EL.pause();
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.playbackState = 'paused';
-    }
-  }
-}, 'player');
+  }, [isPlaying, url]);
 
-const title = (url) =>
-  html` <div class="player__title">
-    ${toTitle(url)}<a
-      class="player__clear-button"
-      @click=${resetPlayer}
-      title="Clear"
-      >✖</a
-    >
-  </div>`;
-
-export const player = view(({ render, state }) => {
-  const { url } = state.player;
-  render`
-    <div class="player">
-      ${PLAYER_EL}
-      ${url ? title(url) : null}
-    </div>`;
-});
+  return (
+    <div className="player">
+      <audio ref={audioRef} className="player__media" controls preload="">
+        Sorry, this media format is not supported.
+      </audio>
+      {url && (
+        <div className="player__title">
+          {toTitle(url)}
+          <a
+            className="player__clear-button"
+            onClick={resetPlayer}
+            title="Clear"
+          >
+            ✖
+          </a>
+        </div>
+      )}
+    </div>
+  );
+};

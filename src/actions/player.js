@@ -1,4 +1,4 @@
-import { action } from 'jetstart/src';
+import { action } from '../state';
 
 export const resetPlayer = action(({ commit, state }) => {
   state.player = { isPlaying: false, url: null };

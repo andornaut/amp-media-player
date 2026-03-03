@@ -23,6 +23,8 @@ const buildOptions = {
   format: 'iife',
   minify: isProduction,
   outdir: 'dist',
+  loader: { '.js': 'jsx' },
+  jsx: 'automatic',
   plugins: isWatch
     ? [
       {

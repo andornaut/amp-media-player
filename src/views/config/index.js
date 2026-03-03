@@ -1,13 +1,16 @@
-import { html, view, when } from 'jetstart/src';
+import { useStatezero } from 'statezero-react-hooks';
 
 import './style.css';
 import {
-  closeForm, openForm, setProxy, toggleShortcutsHelp,
+  closeForm,
+  openForm,
+  setProxy,
+  toggleShortcutsHelp,
 } from '../../actions/config';
 import { resetAll } from '../../actions/init';
 import { navigateToDefault } from '../../actions/navigator';
-import { breadcrumbs } from '../breadcrumbs';
-import { shortcuts } from './shortcuts';
+import { Breadcrumbs } from '../breadcrumbs';
+import { Shortcuts } from './shortcuts';
 
 const onCancel = (event) => {
   event.preventDefault();
@@ -16,56 +19,82 @@ const onCancel = (event) => {
 
 const onSubmit = (event) => {
   event.preventDefault();
-  const proxy = Array.from(event.target.elements).reduce((data, { name, value }) => {
-    data[name] = value;
-    return data;
-  }, {});
+  const formData = new FormData(event.target);
+  const proxy = Object.fromEntries(formData.entries());
 
   resetAll();
   setProxy(proxy);
   navigateToDefault();
 };
 
-const form = ({ baseUrl, username = '', password = '' }) => html`
-  <form class="config__form config__form--open" @submit=${onSubmit}>
-    <div class="config__inputs">
-      <label class="config__label">
-        URL
-        <input class="config__input input" name="baseUrl"
-          placeholder="https://example.com/" .value=${baseUrl} required pattern="^((https?://)|/).+/$">
-      </label>
-      
-      <label class="config__label">
-        Username
-        <input class="config__input input" name="username" .value=${username}>
-      </label>
-      
-      <label class="config__label">
-        Password
-        <input class="config__input input" name="password" type="password" .value=${password}>
-      </label>
-    </div>
-    <div class="config__buttons">
-      <button type="submit">Save</button>       
-      <button @click=${onCancel}>Cancel</button>
-    </div>
-  </form>`;
+const ConfigForm = ({ proxy }) => {
+  const { baseUrl, username = '', password = '' } = proxy;
+  return (
+    <form className="config__form config__form--open" onSubmit={onSubmit}>
+      <div className="config__inputs">
+        <label className="config__label">
+          URL
+          <input
+            className="config__input input"
+            name="baseUrl"
+            placeholder="https://example.com/"
+            defaultValue={baseUrl}
+            required
+            pattern="^((https?://)|/).+/$"
+          />
+        </label>
 
-const header = (isShortcutsModalOpen) => html`
-  <header class="config__form config__form--closed">
-    <div class="config__buttons">
-      <button @click=${openForm}>Edit</button>
-      <button @click=${toggleShortcutsHelp}>Help</button>
-      ${when(isShortcutsModalOpen, () => shortcuts, () => null)}
+        <label className="config__label">
+          Username
+          <input
+            className="config__input input"
+            name="username"
+            defaultValue={username}
+          />
+        </label>
+
+        <label className="config__label">
+          Password
+          <input
+            className="config__input input"
+            name="password"
+            type="password"
+            defaultValue={password}
+          />
+        </label>
+      </div>
+      <div className="config__buttons">
+        <button type="submit">Save</button>
+        <button type="button" onClick={onCancel}>
+          Cancel
+        </button>
+      </div>
+    </form>
+  );
+};
+
+const Header = ({ isShortcutsModalOpen }) => (
+  <header className="config__form config__form--closed">
+    <div className="config__buttons">
+      <button onClick={openForm}>Edit</button>
+      <button onClick={toggleShortcutsHelp}>Help</button>
+      {isShortcutsModalOpen && <Shortcuts />}
     </div>
-    ${breadcrumbs()}
+    <Breadcrumbs />
   </header>
-`;
+);
 
-export const config = view(({ render, state }) => {
-  const { isFormOpen, isShortcutsModalOpen, proxy } = state.config;
-  render`
-    <div class="config">
-        ${isFormOpen ? form(proxy) : header(isShortcutsModalOpen)}
-    </div>`;
-});
+export const Config = () => {
+  const configState = useStatezero((state) => state.config || {});
+  const { isFormOpen, isShortcutsModalOpen, proxy } = configState;
+
+  return (
+    <div className="config">
+      {isFormOpen ? (
+        <ConfigForm proxy={proxy} />
+      ) : (
+        <Header isShortcutsModalOpen={isShortcutsModalOpen} />
+      )}
+    </div>
+  );
+};
