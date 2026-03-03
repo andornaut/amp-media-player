@@ -1,20 +1,31 @@
 # AMP Media Player
 
-AMP Media Player is a lightweight web-app for streaming music from
+AMP Media Player is a lightweight web-app that enables you to stream music from
 [web server directory indexes](https://en.wikipedia.org/wiki/Webserver_directory_index).
 
-![screenshot](./screenshot.png)
+![AMP Media Player screenshot](./screenshot.png)
 
-AMP is the successor to
-[Directory Index Media Player (DIMPL)](https://github.com/andornaut/dimpl).
+## How it works
 
-## Getting Started
+1. Point AMP to a web server that serves a directory index (e.g. Apache or Nginx)
+1. If the server requires authentication, then AMP will use a
+   [service worker](https://github.com/andornaut/http-basic-auth-proxy-worker)
+   to proxy requests with the necessary credentials
+1. Navigate your music collection and stream audio directly in your browser
 
-1. Install the Node.js version specified in [.nvmrc](.nvmrc).
-1. Run `npm install` to install project dependencies.
-1. Run `npm run watch` and open http://localhost:8080.
+n.b. Your web server must be configured to
+[support CORS requests](https://github.com/andornaut/http-basic-auth-proxy-worker#web-server)
+if AMP is hosted on a different domain!
 
-## Development
+## Developing
+
+### Getting Started
+
+1. Install [node](https://nodejs.org/en/) (see [`.nvmrc`](.nvmrc) for the recommended version)
+1. `npm install`
+1. `npm run watch` and open [http://localhost:8080](http://localhost:8080)
+
+### Scripts
 
 ```bash
 npm run build        # Development build (with sourcemaps)
@@ -25,34 +36,25 @@ npm run lint:fix     # ESLint with auto-fix
 npm run format       # Format all source files with prettier-eslint
 ```
 
-## Installation
+## Publishing
 
-Build and copy `dist/` to your web server:
+Tagged releases (`v*`) automatically produce a packaged zip file via
+[GitHub Actions](.github/workflows/ci.yml). To create a release:
 
-```bash
-npm run build:prod
-cp -a dist /var/www/example.com/amp
-```
-
-You may need to configure your web server to
-[support CORS requests](https://github.com/andornaut/http-basic-auth-proxy-worker#web-server).
-
-## Releasing
-
-The CI workflow automatically creates a GitHub release on every push to `main`
-(tagged `main`, overwriting the previous one) and for any `v*` tag.
-
-To cut a versioned release:
+1. Update the version in `package.json`
+2. Commit the version bump
+3. Tag and push:
 
 ```bash
-# Bump version in package.json, then:
-git commit -am "chore: release vX.Y.Z"
-git tag vX.Y.Z
+git tag v0.x.x
 git push && git push --tags
 ```
 
-## Links
+The latest build from the `main` branch is also always available as a
+[rolling release](https://github.com/andornaut/amp-media-player/releases/tag/main).
 
-- [dimpl](https://github.com/andornaut/dimpl)
-- [http-basic-auth-proxy-worker](https://github.com/andornaut/http-basic-auth-proxy-worker)
-- [jetstart](https://github.com/andornaut/jetstart)
+## Credits
+
+- [jetstart](https://github.com/andornaut/jetstart) (UI framework)
+- [http-basic-auth-proxy-worker](https://github.com/andornaut/http-basic-auth-proxy-worker) (auth proxy)
+- [dimpl](https://github.com/andornaut/dimpl) (the predecessor)
