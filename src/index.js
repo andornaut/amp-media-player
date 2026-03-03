@@ -3,20 +3,9 @@ import { createRoot } from 'react-dom/client';
 import { initState } from './actions/init';
 import { navigateToDefault } from './actions/navigator';
 import { initKeyboard } from './keyboard';
-import {
-  getState, subscribe, subscribeSync, subscribeOnce,
-} from './state';
+import { getState, subscribe, subscribeSync } from './state';
 import { App } from './views/app';
 import { ErrorBoundary } from './views/error-boundary';
-
-// Handle service worker messages as early as possible to avoid deadlocks.
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.addEventListener('message', (event) => {
-    if (event.data === 'get-configuration') {
-      event.ports[0].postMessage(getState('config.proxy'));
-    }
-  });
-}
 
 const root = createRoot(document.getElementById('root') || document.body);
 
@@ -29,16 +18,29 @@ const renderApp = (state) => {
 };
 
 const init = async () => {
+  // Handle configuration requests from the worker immediately
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data === 'get-configuration') {
+        event.ports[0].postMessage(getState('config.proxy'));
+      }
+    });
+  }
+
+  // 1. Initialize state from storage
   await initState();
   subscribe(renderApp);
 
+  // 2. Initialize keyboard
   initKeyboard();
 
-  const state = getState();
-  renderApp(state);
+  // 3. Kick off navigation immediately (async)
+  navigateToDefault();
 
-  subscribeOnce(navigateToDefault, 'config.proxy');
+  // 4. Initial render
+  renderApp(getState());
 
+  // 5. Setup Service Worker
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./worker.js');
 
