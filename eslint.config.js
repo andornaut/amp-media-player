@@ -65,18 +65,12 @@ module.exports = [
       'no-unused-expressions': ['error', { allowTaggedTemplates: true }],
       // Required for including regex in string attribute values
       'no-useless-escape': 0,
-      'no-console': 1,
       'react/function-component-definition': 0,
       'react/prop-types': 0,
       'react/react-in-jsx-scope': 0,
       'react/jsx-filename-extension': [1, { extensions: ['.js', '.jsx'] }],
-      'jsx-a11y/label-has-associated-control': 0,
-      'jsx-a11y/media-has-caption': 0,
-      'jsx-a11y/click-events-have-key-events': 0,
-      'jsx-a11y/no-static-element-interactions': 0,
-      'jsx-a11y/anchor-is-valid': 0,
       'react/no-array-index-key': 0,
-      'react/button-has-type': 0,
+      'jsx-a11y/media-has-caption': 0,
     },
     settings: {
       react: {

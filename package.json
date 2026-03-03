@@ -44,7 +44,7 @@
     "build": "node build.mjs",
     "build:prod": "node build.mjs --production",
     "format": "prettier-eslint --write '{src/**/,tests/**/,./}*.{css,js,json,jsx,md,mjs}'",
-    "lint": "eslint .",
+    "lint": "eslint --max-warnings 0 .",
     "lint:fix": "eslint --fix .",
     "prepare": "husky",
     "watch": "node build.mjs --watch"

@@ -7,36 +7,28 @@ import { getState, subscribe, subscribeSync } from './state';
 import { App } from './views/app';
 import { ErrorBoundary } from './views/error-boundary';
 
-console.time('app-init');
+// Handle service worker messages as early as possible to avoid deadlocks.
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data === 'get-configuration') {
+      event.ports[0].postMessage(getState('config.proxy'));
+    }
+  });
+}
 
 const root = createRoot(document.getElementById('root') || document.body);
 
 const renderApp = (state) => {
-  console.time('render-app');
   root.render(
     <ErrorBoundary>
       <App state={state} />
     </ErrorBoundary>,
   );
-  console.timeEnd('render-app');
 };
 
 const init = async () => {
-  // Handle configuration requests from the worker immediately
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.addEventListener('message', (event) => {
-      if (event.data === 'get-configuration') {
-        console.time('sw-config-request');
-        event.ports[0].postMessage(getState('config.proxy'));
-        console.timeEnd('sw-config-request');
-      }
-    });
-  }
-
   // 1. Initialize state from storage
-  console.time('init-state');
   await initState();
-  console.timeEnd('init-state');
   subscribe(renderApp);
 
   // 2. Initialize keyboard
@@ -50,10 +42,7 @@ const init = async () => {
 
   // 5. Setup Service Worker
   if ('serviceWorker' in navigator) {
-    console.time('sw-register');
-    navigator.serviceWorker.register('./worker.js').then(() => {
-      console.timeEnd('sw-register');
-    });
+    navigator.serviceWorker.register('./worker.js');
 
     subscribeSync(() => {
       navigator.serviceWorker.ready.then((registration) => {
@@ -61,8 +50,6 @@ const init = async () => {
       });
     }, 'config.proxy');
   }
-
-  console.timeEnd('app-init');
 };
 
 init();

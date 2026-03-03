@@ -32,6 +32,7 @@ const Item = ({ url, index, currentIndex }) => {
       </a>
       <button
         className="playlist__remove-button"
+        type="button"
         onClick={onClickRemove}
         title="Remove from playlist"
       >
@@ -47,7 +48,11 @@ export const Playlist = ({ state }) => {
   return (
     <div className="playlist">
       {items.length > 0 && (
-        <button className="playlist__clear-button" onClick={resetPlaylist}>
+        <button
+          className="playlist__clear-button"
+          type="button"
+          onClick={resetPlaylist}
+        >
           Clear playlist
         </button>
       )}

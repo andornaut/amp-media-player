@@ -22,6 +22,16 @@
   border-color: var(--highlight-border);
 }
 
+.navigator__item--playing::before {
+  content: "▶ ";
+  font-weight: bold;
+}
+
+.navigator__item--enqueued::before {
+  content: "✓ ";
+  opacity: 0.5;
+}
+
 .navigator__search-form {
   margin: 1rem;
 }

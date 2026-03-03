@@ -26,9 +26,17 @@ const onSubmit = (event) => {
   navigateForward();
 };
 
-const Item = ({ url, current }) => {
+const Item = ({
+  url, current, isPlaying, isEnqueued,
+}) => {
   const action = isFile(url) ? enqueue : navigate;
-  const cssClass = `navigator__item${url === current ? ' navigator__item--active' : ''}`;
+  let cssClass = `navigator__item${url === current ? ' navigator__item--active' : ''}`;
+  if (isPlaying) {
+    cssClass += ' navigator__item--playing';
+  } else if (isEnqueued) {
+    cssClass += ' navigator__item--enqueued';
+  }
+
   return (
     <a className={cssClass} href={url} onClick={onClickAnchor(action)}>
       {toFilename(url)}
@@ -48,6 +56,9 @@ export const Navigator = ({ state }) => {
     error,
     shouldTriggerFocus,
   } = navigatorState;
+
+  const playlistItems = state.playlist?.items || [];
+  const playerUrl = state.player?.url;
 
   const inputRef = useRef(null);
 
@@ -107,7 +118,13 @@ export const Navigator = ({ state }) => {
       )}
       <div className="navigator__list">
         {filteredItems.map((url) => (
-          <Item key={url} url={url} current={current} />
+          <Item
+            key={url}
+            url={url}
+            current={current}
+            isPlaying={url === playerUrl}
+            isEnqueued={playlistItems.includes(url)}
+          />
         ))}
       </div>
     </div>

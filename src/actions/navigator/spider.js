@@ -74,20 +74,10 @@ const responseToText = (response) => response.text();
 const extractUrls = (baseUrl) => {
   const baseAbsoluteUrl = toAbsoluteUrl(baseUrl);
   const toUrlWithBase = toUrl(baseAbsoluteUrl);
-  return (text) => {
-    console.time(`extract-urls-${baseUrl}`);
-    const res = unique(compact(toAnchors(text).map(toUrlWithBase)));
-    console.timeEnd(`extract-urls-${baseUrl}`);
-    return res;
-  };
+  return (text) => unique(compact(toAnchors(text).map(toUrlWithBase)));
 };
 
-export const scrapeUrls = (url, config) => {
-  console.time(`fetch-urls-${url}`);
-  return fetch(url, requestOptions(config))
-    .then((response) => {
-      console.timeEnd(`fetch-urls-${url}`);
-      return responseToText(response);
-    })
+export const scrapeUrls = (url, config) =>
+  fetch(url, requestOptions(config))
+    .then((response) => responseToText(response))
     .then(extractUrls(url));
-};

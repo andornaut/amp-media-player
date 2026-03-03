@@ -23,6 +23,24 @@ export const Player = ({ state }) => {
     };
     audio.addEventListener('volumechange', onVolumeChange);
 
+    const updatePositionState = () => {
+      if (
+        'mediaSession' in navigator
+        && 'setPositionState' in navigator.mediaSession
+      ) {
+        if (!audio.duration || Number.isNaN(audio.duration)) return;
+        navigator.mediaSession.setPositionState({
+          duration: audio.duration,
+          playbackRate: audio.playbackRate,
+          position: audio.currentTime,
+        });
+      }
+    };
+
+    audio.addEventListener('timeupdate', updatePositionState);
+    audio.addEventListener('durationchange', updatePositionState);
+    audio.addEventListener('ratechange', updatePositionState);
+
     if ('mediaSession' in navigator) {
       navigator.mediaSession.setActionHandler('play', togglePlayPause);
       navigator.mediaSession.setActionHandler('pause', togglePlayPause);
@@ -34,12 +52,41 @@ export const Player = ({ state }) => {
         'nexttrack',
         selectNextPlaylistItem,
       );
+
+      try {
+        navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+          const skipTime = details.seekOffset || 10;
+          audio.currentTime = Math.max(audio.currentTime - skipTime, 0);
+          updatePositionState();
+        });
+        navigator.mediaSession.setActionHandler('seekforward', (details) => {
+          const skipTime = details.seekOffset || 10;
+          audio.currentTime = Math.min(
+            audio.currentTime + skipTime,
+            audio.duration,
+          );
+          updatePositionState();
+        });
+        navigator.mediaSession.setActionHandler('seekto', (details) => {
+          if (details.fastSeek && 'fastSeek' in audio) {
+            audio.fastSeek(details.seekTime);
+            return;
+          }
+          audio.currentTime = details.seekTime;
+          updatePositionState();
+        });
+      } catch {
+        /* some browsers might not support all actions */
+      }
     }
 
     // eslint-disable-next-line consistent-return
     return () => {
       audio.removeEventListener('ended', selectNextPlaylistItem);
       audio.removeEventListener('volumechange', onVolumeChange);
+      audio.removeEventListener('timeupdate', updatePositionState);
+      audio.removeEventListener('durationchange', updatePositionState);
+      audio.removeEventListener('ratechange', updatePositionState);
     };
   }, []);
 

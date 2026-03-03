@@ -5,7 +5,9 @@ const SHORTCUTS = Object.entries(KEYBOARD_BINDINGS);
 
 export const Shortcuts = () => (
   <section className="config__shortcuts">
-    <button onClick={toggleShortcutsHelp}>Close</button>
+    <button type="button" onClick={toggleShortcutsHelp}>
+      Close
+    </button>
     <header>
       <h2>Help</h2>
     </header>
