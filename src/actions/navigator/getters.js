@@ -1,52 +1,53 @@
-import { isFile } from '../../helpers';
+import { isFile, toAbsoluteUrl } from '../../helpers';
 import { toFilename, trimTrailingForwardSlash } from '../../transform';
 
-// Workaround error: TypeError: "/example/ is not a valid URL."
-const toAbsoluteUrl = (url) => (url.startsWith('/') ? `${window.location.origin}${url}` : url);
-
-export const getBreadcrumbs = ({ url }, { config: { proxy: { baseUrl } = {} } = {} }) => {
+export const getBreadcrumbs = (
+  { url },
+  { config: { proxy: { baseUrl } = {} } = {} },
+) => {
   if (!baseUrl) {
     return [];
   }
 
   // Can be relative or absolute depending on what the user input.
-  baseUrl = toAbsoluteUrl(baseUrl);
+  const absoluteBaseUrl = toAbsoluteUrl(baseUrl);
 
   // Can be absolute when it is the result of a scraped URL; or relative when it is the result of navigation to the
   // baseUrl (`navigateToDefault()`) where baseUrl is relative.
-  url = toAbsoluteUrl(url);
+  const absoluteUrl = toAbsoluteUrl(url);
 
-  if (baseUrl === url) {
-    return [baseUrl];
+  if (absoluteBaseUrl === absoluteUrl) {
+    return [absoluteBaseUrl];
   }
-  const urls = [url];
-  const baseLength = baseUrl.length;
+  const urls = [absoluteUrl];
+  const baseLength = absoluteBaseUrl.length;
+  let currentUrl = absoluteUrl;
   for (;;) {
-    const idx = trimTrailingForwardSlash(url).lastIndexOf('/');
+    const idx = trimTrailingForwardSlash(currentUrl).lastIndexOf('/');
     if (idx === -1) {
       break;
     }
-    url = url.substring(0, idx + 1);
-    if (url.length <= baseLength) {
+    currentUrl = currentUrl.substring(0, idx + 1);
+    if (currentUrl.length <= baseLength) {
       break;
     }
-    urls.push(url);
+    urls.push(currentUrl);
   }
-  urls.push(baseUrl);
+  urls.push(absoluteBaseUrl);
   return urls.reverse();
 };
 
-export const getCurrent = ({ index, filteredItems }) => filteredItems[index] || filteredItems[0];
+export const getCurrent = ({ index, filteredItems }) =>
+  filteredItems[index] || filteredItems[0];
 
-export const getFilteredFiles = ({ filteredItems }) => filteredItems.filter(isFile);
+export const getFilteredFiles = ({ filteredItems }) =>
+  filteredItems.filter(isFile);
 
 export const getFilteredItems = ({ filter, items }) => {
   if (!filter) {
     return items;
   }
-  filter = filter.toLowerCase();
+  const lowerFilter = filter.toLowerCase();
   return items.filter((url) =>
-    toFilename(url)
-      .toLowerCase()
-      .includes(filter));
+    toFilename(url).toLowerCase().includes(lowerFilter));
 };

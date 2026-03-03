@@ -1,4 +1,4 @@
-import { compact, unique } from '../../helpers';
+import { compact, unique, toAbsoluteUrl } from '../../helpers';
 import { toFilename } from '../../transform';
 
 const EXCLUDED_ANCHOR_NAMES = [
@@ -10,9 +10,6 @@ const EXCLUDED_ANCHOR_NAMES = [
   'parent directory',
   'size',
 ];
-
-const toAbsoluteUrl = (url) =>
-  (url.startsWith('/') ? `${window.location.origin}${url}` : url);
 
 const toAnchors = (text) =>
   Array.from(
