@@ -65,6 +65,7 @@ module.exports = [
       'no-unused-expressions': ['error', { allowTaggedTemplates: true }],
       // Required for including regex in string attribute values
       'no-useless-escape': 0,
+      'no-console': 1,
       'react/function-component-definition': 0,
       'react/prop-types': 0,
       'react/react-in-jsx-scope': 0,
