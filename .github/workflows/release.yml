@@ -44,7 +44,7 @@ jobs:
           cd dist && zip -r ../amp-media-player-$VERSION.zip .
 
       - name: Upload release artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: release-package
           path: amp-media-player-*.zip
@@ -58,17 +58,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Delete previous latest release
+      - name: Delete previous dev release
         if: github.ref == 'refs/heads/main'
         run: |
-          gh release delete latest --yes || true
-          git push --delete origin refs/tags/latest || true
+          gh release delete dev --yes || true
+          git push --delete origin refs/tags/dev || true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download release artifact
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
+          name: release-package
           path: artifacts
 
       - name: Create release
@@ -76,7 +77,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref == 'refs/heads/main' && 'latest' || github.ref_name }}
-          name: ${{ github.ref == 'refs/heads/main' && 'latest' || github.ref_name }}
+          tag_name: ${{ github.ref == 'refs/heads/main' && 'dev' || github.ref_name }}
+          name: ${{ github.ref == 'refs/heads/main' && 'dev' || github.ref_name }}
           body: ${{ github.ref == 'refs/heads/main' && 'Latest build from main branch' || '' }}
-          files: artifacts/release-package/amp-media-player-*.zip
+          make_latest: ${{ github.ref == 'refs/heads/main' && 'false' || 'true' }}
+          files: artifacts/amp-media-player-*.zip
