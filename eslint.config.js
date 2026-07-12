@@ -5,6 +5,13 @@ import reactHooks from "eslint-plugin-react-hooks";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import sortDestructureKeys from "eslint-plugin-sort-destructure-keys";
 import globals from "globals";
+import { createRequire } from "node:module";
+
+// eslint-plugin-react's `version: "detect"` calls `context.getFilename()`, which ESLint 10 removed,
+// so resolve the installed React version ourselves instead.
+const reactVersion = createRequire(import.meta.url)(
+  "react/package.json",
+).version;
 
 export default [
   {
@@ -62,7 +69,7 @@ export default [
     },
     settings: {
       react: {
-        version: "detect",
+        version: reactVersion,
       },
     },
   },
