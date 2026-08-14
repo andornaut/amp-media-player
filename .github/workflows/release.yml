@@ -61,7 +61,7 @@ jobs:
       - name: Create release artifact
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          cd dist && zip -r ../amp-media-player-$VERSION.zip .
+          cd dist && zip -r "../amp-media-player-$VERSION.zip" .
 
       - name: Upload release artifact
         uses: actions/upload-artifact@v7.0.1
