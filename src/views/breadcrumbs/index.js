@@ -1,4 +1,5 @@
 import "./style.css";
+
 import { navigate } from "../../actions/navigator";
 import { toTitle } from "../../transform";
 

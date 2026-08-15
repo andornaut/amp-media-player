@@ -1,6 +1,7 @@
+import "./error-boundary.css";
+
 import { Component } from "react";
 
-import "./error-boundary.css";
 import { initState } from "../actions/init";
 
 export class ErrorBoundary extends Component {

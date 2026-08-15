@@ -1,4 +1,5 @@
 import "./style.css";
+
 import { Config } from "../config";
 import { Navigator } from "../navigator";
 import { Player } from "../player";

@@ -1,6 +1,7 @@
+import "./style.css";
+
 import { useEffect, useRef } from "react";
 
-import "./style.css";
 import { resetPlayer, setVolume, togglePlayPause } from "../../actions/player";
 import {
   selectNextPlaylistItem,
