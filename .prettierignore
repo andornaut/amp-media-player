@@ -1,4 +1,7 @@
 .github/
+AGENTS.md
+CLAUDE.md
+GEMINI.md
 dist/
 node_modules/
 package-lock.json
