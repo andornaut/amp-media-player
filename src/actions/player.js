@@ -1,4 +1,4 @@
-import { action } from '../state';
+import { action } from "../state";
 
 export const resetPlayer = action(({ commit, state }) => {
   state.player = {

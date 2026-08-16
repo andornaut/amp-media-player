@@ -6,7 +6,7 @@ import {
   subscribe,
   subscribeOnce,
   subscribeSync,
-} from 'statezero';
+} from "statezero";
 
 export {
   action,
@@ -19,5 +19,5 @@ export {
 };
 
 export const commit = (state) => {
-  setState('', state);
+  setState("", state);
 };

@@ -67,7 +67,7 @@ export const Playlist = ({ state }) => {
             key={`${url}-${i}`}
             currentIndex={index}
             index={i}
-            isPlaying={i === index && !!playerUrl}
+            isPlaying={i === index && Boolean(playerUrl)}
             url={url}
           />
         ))}

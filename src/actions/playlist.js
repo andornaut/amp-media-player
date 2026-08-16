@@ -1,11 +1,11 @@
-import { cycle } from '../helpers';
-import { action, defineGetter } from '../state';
-import { play } from './player';
+import { cycle } from "../helpers";
+import { action, defineGetter } from "../state";
+import { play } from "./player";
 
 const getCurrent = ({ index, items }) => items[index];
 
 export const definePlaylistGetters = () => {
-  defineGetter('playlist.current', getCurrent);
+  defineGetter("playlist.current", getCurrent);
 };
 
 export const resetPlaylist = action(({ commit, state }) => {

@@ -94,7 +94,10 @@ export const navigate = action(async ({ commit, state }, url) => {
     });
   } catch (err) {
     console.error("Error fetching", url, err);
+    // state is the draft statezero handed this action, not shared state.
+    // eslint-disable-next-line require-atomic-updates
     state.navigator.isLoading = false;
+    // eslint-disable-next-line require-atomic-updates
     state.navigator.error =
       "Failed to load directory. Check your connection or proxy settings.";
     commit(state);

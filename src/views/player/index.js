@@ -15,7 +15,11 @@ export const Player = ({ state }) => {
 
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio) return;
+    if (!audio) {
+      // No element yet, so nothing to clean up. Said explicitly because the
+      // other path returns a cleanup function.
+      return undefined;
+    }
 
     audio.addEventListener("ended", selectNextPlaylistItem);
 
@@ -29,7 +33,9 @@ export const Player = ({ state }) => {
         "mediaSession" in navigator &&
         "setPositionState" in navigator.mediaSession
       ) {
-        if (!audio.duration || Number.isNaN(audio.duration)) return;
+        if (!audio.duration || Number.isNaN(audio.duration)) {
+          return;
+        }
         navigator.mediaSession.setPositionState({
           duration: audio.duration,
           playbackRate: audio.playbackRate,
@@ -92,7 +98,9 @@ export const Player = ({ state }) => {
 
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio) return;
+    if (!audio) {
+      return;
+    }
 
     // Restore volume
     if (Math.abs(audio.volume - volume) > 0.01) {

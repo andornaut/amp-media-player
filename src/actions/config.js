@@ -1,11 +1,11 @@
-import { action } from '../state';
+import { action } from "../state";
 
 export const resetConfig = action(({ commit, state }) => {
   state.config = {
     isFormOpen: false,
     isShortcutsModalOpen: false,
     proxy: {
-      baseUrl: '/',
+      baseUrl: "/",
     },
   };
   commit(state);

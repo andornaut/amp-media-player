@@ -1,5 +1,5 @@
-import { toggleShortcutsHelp } from '../../actions/config';
-import { KEYBOARD_BINDINGS } from '../../keyboard';
+import { toggleShortcutsHelp } from "../../actions/config";
+import { KEYBOARD_BINDINGS } from "../../keyboard";
 
 const SHORTCUTS = Object.entries(KEYBOARD_BINDINGS);
 

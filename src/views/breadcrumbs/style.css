@@ -28,7 +28,7 @@
 .breadcrumbs__item--subdir:not(:last-of-type)::after {
   background-color: var(--playlist-bg);
   color: #666;
-  content: '\2215';
+  content: "\2215";
   margin: -0.25rem 0 -0.25rem 0.25rem;
   /* Vertical padding must match border size of .breadcrumbs__item--subdir */
   padding: 0.25rem;

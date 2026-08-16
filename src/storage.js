@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'state';
+const STORAGE_KEY = "state";
 
 export const fromStorage = () => {
   const item = localStorage.getItem(STORAGE_KEY);

@@ -27,7 +27,9 @@ export const Breadcrumbs = ({ state }) => {
   const [root, ...others] = state.navigator.breadcrumbs || [];
   const { baseUrl } = state.config.proxy;
 
-  if (!root) return null;
+  if (!root) {
+    return null;
+  }
 
   return (
     <div className="breadcrumbs">
