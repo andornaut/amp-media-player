@@ -68,7 +68,7 @@ follows the project's coding standards.
 ## Publishing
 
 Tagged releases (`v*`) automatically produce a packaged zip file via
-[GitHub Actions](.github/workflows/ci.yml). To create a release:
+[GitHub Actions](.github/workflows/release.yml). To create a release:
 
 1. Update the version in `package.json`
 2. Commit the version bump
