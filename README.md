@@ -80,7 +80,7 @@ git push && git push --tags
 ```
 
 The latest build from the `main` branch is also always available as a
-[rolling release](https://github.com/andornaut/amp-media-player/releases/tag/main).
+[rolling release](https://github.com/andornaut/amp-media-player/releases/tag/dev).
 
 ## Credits
 
