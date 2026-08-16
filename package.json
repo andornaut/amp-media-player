@@ -39,7 +39,7 @@
   "scripts": {
     "build": "node build.mjs",
     "build:prod": "node build.mjs --production",
-    "format": "prettier --write '{src/**/,tests/**/,./}*.{css,js,json,jsx,md,mjs}' && eslint --fix .",
+    "format": "prettier --write . && eslint --fix .",
     "lint": "prettier --check . && eslint --max-warnings 0 .",
     "lint:fix": "eslint --fix .",
     "prepare": "husky",
