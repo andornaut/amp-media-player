@@ -44,7 +44,6 @@
     "build:prod": "node build.mjs --production",
     "format": "prettier --write . && eslint --fix .",
     "lint": "prettier --check . && eslint --max-warnings 0 .",
-    "lint:fix": "eslint --fix .",
     "prepare": "husky",
     "watch": "node build.mjs --watch"
   }
