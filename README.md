@@ -52,9 +52,8 @@ if AMP is hosted on a different domain!
 npm run build        # Development build (with sourcemaps)
 npm run build:prod   # Production build (minified, no sourcemaps)
 npm run watch        # Build + dev server on :8080 with live rebuild
-npm run lint         # ESLint (zero warnings tolerance)
-npm run lint:fix     # ESLint with auto-fix
-npm run format       # Format all source files with prettier and eslint
+npm run lint         # Prettier check, then ESLint with zero warnings
+npm run format       # Prettier write, then ESLint --fix
 ```
 
 ### Git hooks
