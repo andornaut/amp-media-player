@@ -59,7 +59,7 @@ npm run format       # Prettier write, then ESLint --fix
 ### Git hooks
 
 - [husky](https://github.com/typicode/husky)
-- [lint-staged](https://github.com/okonet/lint-staged)
+- [lint-staged](https://github.com/lint-staged/lint-staged)
 
 The project uses `husky` to run `lint-staged` on pre-commit, which ensures that all committed code
 follows the project's coding standards.
