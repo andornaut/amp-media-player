@@ -4,6 +4,7 @@
   "author": "andornaut",
   "description": "A lightweight web-app that enables you to stream music from web-server directory indexes",
   "license": "MIT",
+  "private": true,
   "main": "src/index.js",
   "bugs": {
     "url": "https://github.com/andornaut/amp-media-player/issues"
