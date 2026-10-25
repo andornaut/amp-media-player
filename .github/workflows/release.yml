@@ -78,7 +78,7 @@ jobs:
           cd dist && zip -r "../amp-media-player-$VERSION.zip" .
 
       - name: Upload release artifact
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: release-package
           path: amp-media-player-*.zip
