@@ -8,7 +8,7 @@ WORKDIR /opt/check
 COPY package.json package-lock.json ./
 RUN git config --system url.https://github.com/.insteadOf ssh://git@github.com/ && \
     git config --system --add url.https://github.com/.insteadOf git@github.com: && \
-    HUSKY=0 npm ci --maxsockets=1 --legacy-peer-deps --no-audit --no-fund
+    HUSKY=0 npm ci --ignore-scripts --maxsockets=1 --legacy-peer-deps --no-audit --no-fund
 ENV PATH="/opt/check/node_modules/.bin:${PATH}"
 COPY tests/container/check /opt/check/run
 RUN chmod 755 /opt/check/run
