@@ -21,6 +21,7 @@ case "$task" in
     lint)
         bash -n tests/container/run tests/container/staged tests/container/staged-git
         sh -n tests/container/check
+        shellcheck -x -P SCRIPTDIR tests/container/run tests/container/staged tests/container/staged-git tests/container/check
         npm run lint:internal
         markdownlint-cli2
         ;;

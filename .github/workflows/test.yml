@@ -47,26 +47,16 @@ jobs:
           # in .git/config for a later step to read.
           persist-credentials: false
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v7.1.0
+      - name: Set up Docker
+        uses: docker/setup-docker-action@v5.7.0
         with:
-          node-version-file: .nvmrc
-          cache: npm
+          version: v29.9.3
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v4.4.1
+        with:
+          version: v0.38.2
+          driver: docker
 
       - name: Lint
-        run: npm run lint
-
-      # The action bundles markdownlint-cli2, so its own tag is the tool pin and
-      # Dependabot proposes the bump through the github-actions ecosystem. It
-      # fetches nothing at run time, so a slow host cannot turn this red.
-      - name: Run markdownlint
-        uses: DavidAnson/markdownlint-cli2-action@v25.0.0
-        with:
-          # Empty on purpose. The action defaults this to `*.{md,markdown}`,
-          # which is the repository root only, and anything passed here outranks
-          # the `globs` in .markdownlint-cli2.yaml. Empty leaves the config file
-          # deciding, so this gate and a local `markdownlint-cli2` read one list.
-          globs: ""
+        run: make lint
