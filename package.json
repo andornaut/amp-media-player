@@ -42,18 +42,12 @@
     "node": ">=24.21.0"
   },
   "scripts": {
-    "build": "make exec COMMAND='npm run build:internal'",
-    "build:prod": "make build",
-    "format": "make exec COMMAND='npm run format:internal'",
-    "lint": "make lint",
+    "build": "node build.mjs",
+    "build:prod": "node build.mjs --production",
+    "format": "prettier --write . && eslint --fix .",
+    "lint": "prettier --check . && eslint --max-warnings 0 .",
     "prepare": "husky",
-    "watch": "node build.mjs --watch",
-    "lint:internal": "prettier --check . && eslint --max-warnings 0 .",
-    "format:internal": "prettier --write . && eslint --fix .",
-    "build:internal": "node build.mjs",
-    "build:prod:internal": "node build.mjs --production",
-    "check": "make check",
-    "test": "make test"
+    "watch": "node build.mjs --watch"
   },
   "overrides": {
     "markdownlint-cli2@0.24.0": {

@@ -66,33 +66,16 @@ follows the project's coding standards.
 
 ## Container checks
 
-Docker and Make run verification without a host Node.js installation:
+Run `make check` for lint and production build in the project test container.
+Docker and Make are required; dependencies are installed in the image.
+The container gate also checks Markdown and shell helpers.
 
-```bash
-make check
-make check-info
-```
-
-`make check` runs every declared lint, test and build check in an isolated
-container. `npm run check` is the native alias. `make lint`, `make test` and
-`make build` run individual categories; an undeclared category fails explicitly.
-The checkout is read-only during checks, and caches and generated files stay in
-container scratch storage. `make exec COMMAND='npm update'` runs an intentional
-package operation with writable project files and protected Git metadata.
+Native commands such as `npm run lint`, `npm run build` and `npm run build:prod` run on
+the host with the project's Node.js version and installed dependencies. The
+pre-commit hook uses local lint-staged, Prettier and ESLint for automatic staged
+fixes and preserves ordinary partial-staging behavior.
 
 No test suite is declared.
-
-`make staged` retains host lint-staged for stash and staging operations. Prettier and
-ESLint fixes run inside containers. Hooks require host Node.js and the project's
-local lint-staged dependency; prepare dependencies with
-`make exec COMMAND='npm ci --legacy-peer-deps'` without a host package installation. Git rollback and stash cleanup stop when a
-container writer remains unresolved, preserving the working files and backup.
-
-`make build` exports the generated `dist/` directory. The full check gate verifies
-the same build in scratch without exporting artifacts.
-
-`npm run build` retains the development build; `npm run build:prod` uses the
-production build and exports `dist/`.
 
 ## Publishing
 

@@ -19,10 +19,10 @@ case "$task" in
         done
         ;;
     lint)
-        bash -n tests/container/run tests/container/staged tests/container/staged-git
+        bash -n tests/container/run
         sh -n tests/container/check
-        shellcheck -x -P SCRIPTDIR tests/container/run tests/container/staged tests/container/staged-git tests/container/check
-        npm run lint:internal
+        shellcheck -x -P SCRIPTDIR tests/container/run tests/container/check
+        npm run lint
         markdownlint-cli2
         ;;
     test)
@@ -30,7 +30,7 @@ case "$task" in
         exit 2
         ;;
     build)
-        npm run build:prod:internal
+        npm run build:prod
         ;;
     exec)
         if [ "$#" -gt 0 ]; then
