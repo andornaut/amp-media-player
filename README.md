@@ -115,3 +115,8 @@ The latest build from the `main` branch is also always available as a
 
 - [http-basic-auth-proxy-worker](https://github.com/andornaut/http-basic-auth-proxy-worker) (auth proxy)
 - [dimpl](https://github.com/andornaut/dimpl) (the predecessor)
+
+WORKAROUND: Markdownlint CLI 0.24.0 overrides pin patched dependencies for
+[GHSA-gg6h-894w-4m9c](https://github.com/advisories/GHSA-gg6h-894w-4m9c) and
+[GHSA-238p-pmpm-9mq7](https://github.com/advisories/GHSA-238p-pmpm-9mq7).
+Remove the overrides when upstream dependencies include these fixes.
