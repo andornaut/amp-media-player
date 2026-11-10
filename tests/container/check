@@ -19,7 +19,7 @@ case "$task" in
         done
         ;;
     lint)
-        bash -n tests/container/run
+        bash -n tests/container/run tests/container/staged tests/container/staged-git
         sh -n tests/container/check
         npm run lint:internal
         markdownlint-cli2

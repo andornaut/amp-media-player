@@ -82,6 +82,12 @@ package operation with writable project files and protected Git metadata.
 
 No test suite is declared.
 
+`make staged` retains host lint-staged for stash and staging operations. Prettier and
+ESLint fixes run inside containers. Hooks require host Node.js and the project's
+local lint-staged dependency; prepare dependencies with
+`make exec COMMAND='npm ci --legacy-peer-deps'` without a host package installation. Git rollback and stash cleanup stop when a
+container writer remains unresolved, preserving the working files and backup.
+
 `make build` exports the generated `dist/` directory. The full check gate verifies
 the same build in scratch without exporting artifacts.
 
