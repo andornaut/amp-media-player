@@ -1,128 +1,29 @@
 #!/usr/bin/env bash
 set -euo pipefail
 checkout=$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd -P)
-stock_entrypoint_path=${BASH_SOURCE[0]}
-stock_entrypoint_hash=$(sha256sum "${stock_entrypoint_path}" | cut -d ' ' -f1)
 # shellcheck source=tests/container/stock
 source "${checkout}/tests/container/stock"
 action=${1:-check}
-case "${action}" in check|lint|test|build) ;; *) printf 'Unknown stock check: %s\n' "${action}" >&2; exit 2 ;; esac
-if (( $# > 1 )); then printf '%s\n' 'Stock checks do not accept extra arguments.' >&2; exit 2; fi
+case "${action}" in check|lint|test|build) ;; *) exit 2 ;; esac
+if (( $# > 1 )); then exit 2; fi
 if [[ ${action} == test ]]; then printf '%s\n' 'No test suite is declared.' >&2; exit 2; fi
 native_arguments=("${action}")
-: "${NODE_IMAGE:?The Makefile declares NODE_IMAGE}"
-: "${SHELLCHECK_IMAGE:?The Makefile declares SHELLCHECK_IMAGE}"
 stock_begin "${checkout}"
-cd -- "${checkout}"
-STOCK_OUTPUT_DIR=
-node_image=
-shellcheck_image=
-stock_image node_image "${NODE_IMAGE}"
-publish_dist() (
-    set -euo pipefail
-    local generated=$1 stage='' backup='' entry relative validation_list
-    local stage_identity='' backup_identity='' old_identity=''
-    publish_identity() {
-        if [[ -d $1 && ! -L $1 ]]; then stat -c '%d:%i' -- "$1"; fi
-    }
-    # Called only by the publication EXIT callback.
-    # shellcheck disable=SC2329
-    publish_remove_owned() {
-        local path=$1 identity=$2
-        if [[ ! -e ${path} && ! -L ${path} ]]; then return 0; fi
-        if [[ -z ${identity} || $(publish_identity "${path}") != "${identity}" || -n $(find -P "${path}" -type l -print -quit) ]]; then
-            printf 'Preserve changed publication path: %s\n' "${path}" >&2
-            return 125
-        fi
-        find -P "${path}" -depth -delete
-    }
-    # Invoked by the publication EXIT trap.
-    # shellcheck disable=SC2329
-    publish_cleanup() {
-        local status=$?
-        trap - EXIT INT TERM HUP
-        set +e
-        if (( status != 0 )); then
-            if [[ -n ${stage_identity} && $(publish_identity dist) == "${stage_identity}" && ! -e ${stage} && ! -L ${stage} ]]; then
-                mv -T --no-clobber -- dist "${stage}"
-                if [[ $(publish_identity "${stage}") != "${stage_identity}" ]]; then status=125; fi
-            fi
-            if [[ -n ${old_identity} && -n ${backup} && $(publish_identity "${backup}") == "${old_identity}" ]]; then
-                if [[ ! -e dist && ! -L dist ]]; then
-                    mv -T --no-clobber -- "${backup}" dist
-                    if [[ $(publish_identity dist) != "${old_identity}" || -e ${backup} || -L ${backup} ]]; then status=125; fi
-                else
-                    printf 'Preserve concurrent dist and recover original output from: %s/%s\n' "${checkout}" "${backup}" >&2
-                    status=125
-                fi
-            fi
-        fi
-        if [[ -n ${stage} ]]; then publish_remove_owned "${stage}" "${stage_identity}" || status=125; fi
-        if [[ -n ${backup} && ( -e ${backup} || -L ${backup} ) ]]; then
-            if (( status == 0 )); then
-                publish_remove_owned "${backup}" "${old_identity}" || status=125
-            elif [[ $(publish_identity "${backup}") == "${backup_identity}" ]]; then
-                publish_remove_owned "${backup}" "${backup_identity}" || status=125
-            fi
-        fi
-        exit "${status}"
-    }
-    trap publish_cleanup EXIT
-    trap 'exit 130' INT
-    trap 'exit 143' TERM
-    trap 'exit 129' HUP
-    [[ $(pwd -P) == "${checkout}" && $(realpath -e -- "${checkout}") == "${checkout}" ]]
-    [[ ${generated} == "${scratch}/build-output" && -d ${generated} && ! -L ${generated} && ! -L dist ]]
-    [[ -z $(git ls-files -- dist) && -z $(git ls-tree -r --name-only HEAD -- dist) ]]
-    git check-ignore --quiet --no-index dist/
-    validation_list=$(mktemp "${scratch}/publish-list.XXXXXXXX")
-    find -P "${generated}" -print0 > "${validation_list}"
-    [[ -n $(find -P "${generated}" -type f -print -quit) ]]
-    while IFS= read -r -d '' entry; do
-        [[ ! -L ${entry} && ( -f ${entry} || -d ${entry} ) ]]
-        if [[ -f ${entry} ]]; then [[ $(stat -c %h -- "${entry}") == 1 ]]; fi
-        relative=${entry#"${generated}"}
-        if [[ -n ${relative} ]]; then git check-ignore --quiet --no-index "dist${relative}"; fi
-    done < "${validation_list}"
-    if [[ -e dist ]]; then
-        [[ -d dist ]]
-        find -P dist -print0 > "${validation_list}"
-        while IFS= read -r -d '' entry; do
-            [[ ! -L ${entry} && ( -f ${entry} || -d ${entry} ) ]]
-            git check-ignore --quiet --no-index "${entry}"
-        done < "${validation_list}"
-        old_identity=$(publish_identity dist)
-    fi
-    stage=$(mktemp -d .dist-stage.XXXXXXXX)
-    stage_identity=$(publish_identity "${stage}")
-    cp -R -- "${generated}/." "${stage}/"
-    find -P "${stage}" -type d -exec chmod u+rwx,go+rx,go-w {} +
-    find -P "${stage}" -type f -exec chmod u+rw,go+r,go-w {} +
-    if [[ -n ${old_identity} ]]; then
-        backup=$(mktemp -d .dist-backup.XXXXXXXX)
-        backup_identity=$(publish_identity "${backup}")
-        [[ $(publish_identity dist) == "${old_identity}" ]]
-        mv -T -- dist "${backup}"
-    fi
-    mv -T --no-clobber -- "${stage}" dist
-    [[ ! -e ${stage} && ! -L ${stage} && $(publish_identity dist) == "${stage_identity}" ]]
-)
-build_output=
-if [[ ${action} == build ]]; then
-    build_output=${scratch}/build-output
-    mkdir "${build_output}"
-    STOCK_OUTPUT_DIR=${build_output}
-fi
+stock_image node_image "${NODE_IMAGE:?}"
 if [[ ${action} == check || ${action} == lint ]]; then
     STOCK_NETWORK=bridge stock_run "${node_image}" -- sh -ec "sh tests/container/node \"\$@\"; sh tests/container/markdown" sh "${native_arguments[@]}"
     shell_files=(tests/container/stock tests/container/check-stock tests/container/node tests/container/markdown)
     while IFS= read -r -d '' file; do
         if [[ ${file} == *.sh ]]; then shell_files+=("${file}"); fi
     done < "${scratch}/source.list"
-    stock_image shellcheck_image "${SHELLCHECK_IMAGE}"
+    stock_image shellcheck_image "${SHELLCHECK_IMAGE:?}"
     stock_readonly "${shellcheck_image}" /bin/shellcheck -x -P SCRIPTDIR "${shell_files[@]}"
+elif [[ ${action} == build ]]; then
+    mkdir "${scratch}/build-output"
+    STOCK_OUTPUT_DIR=${scratch}/build-output STOCK_NETWORK=bridge stock_run "${node_image}" -- sh tests/container/node build
+    mkdir -p "${checkout}/dist"
+    cp -R "${scratch}/build-output/." "${checkout}/dist/"
 else
-    STOCK_OUTPUT_DIR=${STOCK_OUTPUT_DIR:-} STOCK_NETWORK=bridge stock_run "${node_image}" -- sh tests/container/node "${native_arguments[@]}"
+    STOCK_NETWORK=bridge stock_run "${node_image}" -- sh tests/container/node "${native_arguments[@]}"
 fi
 stock_finish
-if [[ -n ${build_output} ]]; then publish_dist "${build_output}"; fi

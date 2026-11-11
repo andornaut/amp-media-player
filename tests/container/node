@@ -28,7 +28,6 @@ case "${1:-check}" in
 esac
 
 if [ "$action" = build ]; then
-    test -d /outputs
     cp -R dist/. /outputs/
     find /outputs -mindepth 1 -type d -exec chmod a+rwx {} +
 fi

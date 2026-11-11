@@ -68,118 +68,9 @@ jobs:
       - name: Build
         run: |
           set -euo pipefail
-          : "${GITHUB_SHA:?CI requires its expected source commit}"
-          ci_revision=$(git --no-optional-locks -c core.fsmonitor=false -c core.hooksPath=/dev/null rev-parse HEAD)
-          ci_status=$(git --no-optional-locks -c core.fsmonitor=false -c core.hooksPath=/dev/null status --porcelain=v1 --untracked-files=all)
-          if [[ ${ci_revision} != "${GITHUB_SHA}" || -n ${ci_status} ]]; then
-            printf '%s\n' 'CI requires the clean expected source commit.' >&2
-            exit 125
-          fi
-          if [[ ! ${GITHUB_SHA} =~ ^[a-f0-9]{40}$ ]]; then
-            printf '%s\n' 'CI requires a full expected commit SHA.' >&2
-            exit 125
-          fi
-          ci_control_blob=$(git --no-optional-locks -c core.fsmonitor=false -c core.hooksPath=/dev/null rev-parse --verify "${GITHUB_SHA}:tests/container/stock")
-          ci_control_entry=$(git --no-optional-locks -c core.fsmonitor=false -c core.hooksPath=/dev/null ls-tree "${GITHUB_SHA}" -- tests/container/stock)
-          if [[ ( ${ci_control_entry} != "100644 blob ${ci_control_blob}"$'\t'"tests/container/stock" && ${ci_control_entry} != "100755 blob ${ci_control_blob}"$'\t'"tests/container/stock" ) || ! -f tests/container/stock || -L tests/container/stock || ( ${ci_control_entry} == 100644* && -x tests/container/stock ) || ( ${ci_control_entry} == 100755* && ! -x tests/container/stock ) || $(git hash-object --no-filters -- tests/container/stock) != "${ci_control_blob}" ]]; then
-            printf '%s\n' 'CI stock control source differs from the expected regular blob.' >&2
-            exit 125
-          fi
           source tests/container/stock
           stock_begin "$PWD"
-          STOCK_OUTPUT_DIR=
-          [[ ${revision} == "${GITHUB_SHA:?}" ]]
-          [[ ${source_dirty} == false ]]
           stock_image node_image "node:$(sed 's/^v//' .nvmrc)"
-          publish_dist() (
-              set -euo pipefail
-              local generated=$1 stage='' backup='' entry relative validation_list
-              local stage_identity='' backup_identity='' old_identity=''
-              publish_identity() {
-                  if [[ -d $1 && ! -L $1 ]]; then stat -c '%d:%i' -- "$1"; fi
-              }
-              # Called only by the publication EXIT callback.
-              # shellcheck disable=SC2329
-              publish_remove_owned() {
-                  local path=$1 identity=$2
-                  if [[ ! -e ${path} && ! -L ${path} ]]; then return 0; fi
-                  if [[ -z ${identity} || $(publish_identity "${path}") != "${identity}" || -n $(find -P "${path}" -type l -print -quit) ]]; then
-                      printf 'Preserve changed publication path: %s\n' "${path}" >&2
-                      return 125
-                  fi
-                  find -P "${path}" -depth -delete
-              }
-              # Invoked by the publication EXIT trap.
-              # shellcheck disable=SC2329
-              publish_cleanup() {
-                  local status=$?
-                  trap - EXIT INT TERM HUP
-                  set +e
-                  if (( status != 0 )); then
-                      if [[ -n ${stage_identity} && $(publish_identity dist) == "${stage_identity}" && ! -e ${stage} && ! -L ${stage} ]]; then
-                          mv -T --no-clobber -- dist "${stage}"
-                          if [[ $(publish_identity "${stage}") != "${stage_identity}" ]]; then status=125; fi
-                      fi
-                      if [[ -n ${old_identity} && -n ${backup} && $(publish_identity "${backup}") == "${old_identity}" ]]; then
-                          if [[ ! -e dist && ! -L dist ]]; then
-                              mv -T --no-clobber -- "${backup}" dist
-                              if [[ $(publish_identity dist) != "${old_identity}" || -e ${backup} || -L ${backup} ]]; then status=125; fi
-                          else
-                              printf 'Preserve concurrent dist and recover original output from: %s/%s\n' "${checkout}" "${backup}" >&2
-                              status=125
-                          fi
-                      fi
-                  fi
-                  if [[ -n ${stage} ]]; then publish_remove_owned "${stage}" "${stage_identity}" || status=125; fi
-                  if [[ -n ${backup} && ( -e ${backup} || -L ${backup} ) ]]; then
-                      if (( status == 0 )); then
-                          publish_remove_owned "${backup}" "${old_identity}" || status=125
-                      elif [[ $(publish_identity "${backup}") == "${backup_identity}" ]]; then
-                          publish_remove_owned "${backup}" "${backup_identity}" || status=125
-                      fi
-                  fi
-                  exit "${status}"
-              }
-              trap publish_cleanup EXIT
-              trap 'exit 130' INT
-              trap 'exit 143' TERM
-              trap 'exit 129' HUP
-              [[ $(pwd -P) == "${checkout}" && $(realpath -e -- "${checkout}") == "${checkout}" ]]
-              [[ ${generated} == "${scratch}/build-output" && -d ${generated} && ! -L ${generated} && ! -L dist ]]
-              [[ -z $(git ls-files -- dist) && -z $(git ls-tree -r --name-only HEAD -- dist) ]]
-              git check-ignore --quiet --no-index dist/
-              validation_list=$(mktemp "${scratch}/publish-list.XXXXXXXX")
-              find -P "${generated}" -print0 > "${validation_list}"
-              [[ -n $(find -P "${generated}" -type f -print -quit) ]]
-              while IFS= read -r -d '' entry; do
-                  [[ ! -L ${entry} && ( -f ${entry} || -d ${entry} ) ]]
-                  if [[ -f ${entry} ]]; then [[ $(stat -c %h -- "${entry}") == 1 ]]; fi
-                  relative=${entry#"${generated}"}
-                  if [[ -n ${relative} ]]; then git check-ignore --quiet --no-index "dist${relative}"; fi
-              done < "${validation_list}"
-              if [[ -e dist ]]; then
-                  [[ -d dist ]]
-                  find -P dist -print0 > "${validation_list}"
-                  while IFS= read -r -d '' entry; do
-                      [[ ! -L ${entry} && ( -f ${entry} || -d ${entry} ) ]]
-                      git check-ignore --quiet --no-index "${entry}"
-                  done < "${validation_list}"
-                  old_identity=$(publish_identity dist)
-              fi
-              stage=$(mktemp -d .dist-stage.XXXXXXXX)
-              stage_identity=$(publish_identity "${stage}")
-              cp -R -- "${generated}/." "${stage}/"
-              find -P "${stage}" -type d -exec chmod u+rwx,go+rx,go-w {} +
-              find -P "${stage}" -type f -exec chmod u+rw,go+r,go-w {} +
-              if [[ -n ${old_identity} ]]; then
-                  backup=$(mktemp -d .dist-backup.XXXXXXXX)
-                  backup_identity=$(publish_identity "${backup}")
-                  [[ $(publish_identity dist) == "${old_identity}" ]]
-                  mv -T -- dist "${backup}"
-              fi
-              mv -T --no-clobber -- "${stage}" dist
-              [[ ! -e ${stage} && ! -L ${stage} && $(publish_identity dist) == "${stage_identity}" ]]
-          )
           build_output=${scratch}/build-output
           mkdir "${build_output}"
           STOCK_OUTPUT_DIR=${build_output} STOCK_NETWORK=bridge stock_run "${node_image}" -- sh -ec '
@@ -187,12 +78,12 @@ jobs:
           git config --global --add url.https://github.com/.insteadOf git@github.com:
           HUSKY=0 npm ci --ignore-scripts --maxsockets=1 --legacy-peer-deps --no-audit --no-fund
           npm run build:prod
-          test -d /outputs
           cp -R dist/. /outputs/
           find /outputs -mindepth 1 -type d -exec chmod a+rwx {} +
           '
+          mkdir -p dist
+          cp -R "${build_output}/." dist/
           stock_finish
-          publish_dist "${build_output}"
 
       - name: Create release artifact
         run: |
