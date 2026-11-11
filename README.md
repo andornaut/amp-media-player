@@ -67,8 +67,9 @@ follows the project's coding standards.
 ## Container checks
 
 Run `make check` for lint and production build in isolated stock containers.
-Docker and Make are required. Each native and Markdown phase installs its locked
-dependencies in a disposable container. Shell tooling runs separately.
+Docker and Make are required. The Make gate installs locked dependencies once
+and runs native and Markdown checks in the same Node container. Shell tooling
+runs separately.
 
 Native commands such as `npm run lint`, `npm run build` and `npm run build:prod` run on
 the host with the project's Node.js version and installed dependencies. The
