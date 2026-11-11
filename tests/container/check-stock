@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+checkout=$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd -P)
+stock_entrypoint_path=${BASH_SOURCE[0]}
+stock_entrypoint_hash=$(sha256sum "${stock_entrypoint_path}" | cut -d ' ' -f1)
+# shellcheck source=tests/container/stock
+source "${checkout}/tests/container/stock"
+action=${1:-check}
+case "${action}" in check|lint|test|build) ;; *) printf 'Unknown stock check: %s\n' "${action}" >&2; exit 2 ;; esac
+if (( $# > 1 )); then printf '%s\n' 'Stock checks do not accept extra arguments.' >&2; exit 2; fi
+if [[ ${action} == test ]]; then printf '%s\n' 'No test suite is declared.' >&2; exit 2; fi
+native_arguments=("${action}")
+: "${NODE_IMAGE:?The Makefile declares NODE_IMAGE}"
+: "${SHELLCHECK_IMAGE:?The Makefile declares SHELLCHECK_IMAGE}"
+stock_begin "${checkout}"
+node_image=
+shellcheck_image=
+stock_image node_image "${NODE_IMAGE}"
+stock_prepare "${node_image}" node -- sh tests/container/node prepare
+if [[ ${action} == build ]]; then outputs=(dist); fi
+stock_run "${node_image}" node -- sh tests/container/node "${native_arguments[@]}"
+if [[ ${action} == check || ${action} == lint ]]; then
+    stock_run "${node_image}" node -- sh tests/container/markdown
+    stock_run "${node_image}" '' -- bash -n tests/container/run tests/container/stock tests/container/check-stock
+    stock_run "${node_image}" '' -- sh -n tests/container/check tests/container/node tests/container/markdown
+    shell_files=(tests/container/run tests/container/check tests/container/stock tests/container/check-stock tests/container/node tests/container/markdown)
+    while IFS= read -r -d '' file; do
+        if [[ ${file} == *.sh ]]; then shell_files+=("${file}"); fi
+    done < "${scratch}/source.list"
+    stock_image shellcheck_image "${SHELLCHECK_IMAGE}"
+    stock_readonly "${shellcheck_image}" /bin/shellcheck -x -P SCRIPTDIR "${shell_files[@]}"
+fi
+stock_finish

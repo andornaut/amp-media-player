@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+test -d /scratch/node/node_modules
+if [ ! -e node_modules ]; then ln -s /scratch/node/node_modules node_modules; fi
+exec ./node_modules/.bin/markdownlint-cli2

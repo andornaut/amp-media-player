@@ -66,9 +66,9 @@ follows the project's coding standards.
 
 ## Container checks
 
-Run `make check` for lint and production build in the project test container.
-Docker and Make are required; dependencies are installed in the image.
-The container gate also checks Markdown and shell helpers.
+Run `make check` for lint and production build in isolated stock containers.
+Docker, Make and Python 3 are required. Locked dependencies are prepared once
+and reused by the native and Markdown phases. Shell tooling runs separately.
 
 Native commands such as `npm run lint`, `npm run build` and `npm run build:prod` run on
 the host with the project's Node.js version and installed dependencies. The

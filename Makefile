@@ -1,4 +1,8 @@
 .DEFAULT_GOAL := check
+NODE_IMAGE := node:$(shell sed 's/^v//' .nvmrc)
+SHELLCHECK_IMAGE := koalaman/shellcheck:v0.11.0
+
+export NODE_IMAGE SHELLCHECK_IMAGE
 CHECK_TASKS := lint build
 BUILD_OUTPUTS := dist
 TEST_OUTPUTS :=
@@ -13,5 +17,8 @@ export CHECK_ADMISSION
 
 .PHONY: check lint test build exec
 
-check lint test build exec:
-	@./tests/container/run $@
+check lint test build:
+	@./tests/container/check-stock $@
+
+exec:
+	@./tests/container/run exec

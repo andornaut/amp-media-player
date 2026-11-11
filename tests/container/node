@@ -1,0 +1,32 @@
+#!/bin/sh
+set -eu
+if [ "${1:-}" = prepare ]; then
+    mkdir -p /scratch/node
+    cp package.json package-lock.json /scratch/node/
+    git config --global url.https://github.com/.insteadOf ssh://git@github.com/
+    git config --global --add url.https://github.com/.insteadOf git@github.com:
+    cd /scratch/node
+    HUSKY=0 npm ci --ignore-scripts --maxsockets=1 --legacy-peer-deps --no-audit --no-fund >&2
+    exec tar --create --file - --directory / scratch/node
+fi
+if [ ! -e node_modules ]; then ln -s /scratch/node/node_modules node_modules; fi
+lint() {
+    npm run lint
+}
+test_suite() {
+    printf '%s\n' 'No test suite is declared.' >&2
+    return 2
+}
+build() {
+    npm run build:prod
+}
+case "${1:-check}" in
+    check)
+        lint
+        build
+        ;;
+    lint) lint ;;
+    test) test_suite ;;
+    build) build ;;
+    *) exit 2 ;;
+esac

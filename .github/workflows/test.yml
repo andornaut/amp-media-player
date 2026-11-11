@@ -126,8 +126,8 @@ jobs:
               git config --global url.https://github.com/.insteadOf ssh://git@github.com/
               git config --global --add url.https://github.com/.insteadOf git@github.com:
               HUSKY=0 npm ci --ignore-scripts --maxsockets=1 --legacy-peer-deps --no-audit --no-fund
-              bash -n tests/container/run
-              sh -n tests/container/check
+              bash -n tests/container/run tests/container/stock tests/container/check-stock
+              sh -n tests/container/check tests/container/node tests/container/markdown
               npm run lint
           '
           docker run --rm --read-only --network none --user 19001:19001 \
@@ -146,7 +146,7 @@ jobs:
           '
           lint_tool_scratch=$(mktemp -d "${RUNNER_TEMP:?}/stock-shellcheck.XXXXXXXX")
           chmod 1777 "$lint_tool_scratch"
-          shell_files=(tests/container/run tests/container/check)
+          shell_files=(tests/container/run tests/container/check tests/container/stock tests/container/check-stock tests/container/node tests/container/markdown)
           while IFS= read -r -d '' path; do
               shell_files+=("${path#"${stock_scratch}/source/"}")
           done < <(find "${stock_scratch}/source" -type f -name '*.sh' -not -path '*/node_modules/*' -not -path '*/.husky/*' -print0)
