@@ -422,7 +422,11 @@ collect_source() {
         if excluded "${relative}"; then continue; fi
         contained "${relative}"
         if [[ -d ${root}/${path} && ! -L ${root}/${path} ]]; then
-            if [[ -e ${root}/${path}/.git ]]; then collect_source "${root}/${path}" "${relative}/"; fi
+            if [[ -e ${root}/${path}/.git ]]; then
+                collect_source "${root}/${path}" "${relative}/"
+            elif [[ $("${git_metadata[@]}" --literal-pathspecs -C "${root}" ls-files --format='%(objectmode)' -- "${path}") == 160000 ]]; then
+                printf '%s\0' "${relative}"
+            fi
         elif [[ -e ${root}/${path} || -L ${root}/${path} ]]; then
             printf '%s\0' "${relative}"
         fi
