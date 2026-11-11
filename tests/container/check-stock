@@ -13,16 +13,51 @@ native_arguments=("${action}")
 : "${NODE_IMAGE:?The Makefile declares NODE_IMAGE}"
 : "${SHELLCHECK_IMAGE:?The Makefile declares SHELLCHECK_IMAGE}"
 stock_begin "${checkout}"
+STOCK_OUTPUT_DIR=
 node_image=
 shellcheck_image=
 stock_image node_image "${NODE_IMAGE}"
-stock_prepare "${node_image}" node -- sh tests/container/node prepare
-if [[ ${action} == build ]]; then outputs=(dist); fi
-stock_run "${node_image}" node -- sh tests/container/node "${native_arguments[@]}"
+publish_dist() {
+    local generated=$1 stage backup entry
+    [[ -d ${generated} && ! -L ${generated} && ! -L dist ]]
+    [[ -z $(git ls-files -- dist) && -z $(git ls-tree -r --name-only HEAD -- dist) ]]
+    git check-ignore --quiet --no-index dist/
+    while IFS= read -r -d '' entry; do
+        [[ -f ${entry} || -d ${entry} ]]
+        [[ ! -L ${entry} ]]
+    done < <(find "${generated}" -print0)
+    if [[ -e dist ]]; then
+        [[ -d dist ]]
+        while IFS= read -r -d '' entry; do
+            [[ -f ${entry} || -d ${entry} ]]
+            [[ ! -L ${entry} ]]
+            git check-ignore --quiet --no-index "${entry}"
+        done < <(find dist -print0)
+    fi
+    stage=$(mktemp -d .dist-stage.XXXXXXXX)
+    cp -R -- "${generated}/." "${stage}/"
+    backup=
+    if [[ -e dist ]]; then
+        backup=$(mktemp -d .dist-backup.XXXXXXXX)
+        rmdir -- "${backup}"
+        mv -- dist "${backup}"
+    fi
+    if mv -- "${stage}" dist; then
+        if [[ -n ${backup} ]]; then find "${backup}" -depth -delete; fi
+    else
+        if [[ -n ${backup} ]]; then mv -- "${backup}" dist; fi
+        return 1
+    fi
+}
+output_parent=
+if [[ ${action} == build ]]; then
+    output_parent=$(mktemp -d "${TMPDIR:-/tmp}/project-build.XXXXXXXX")
+    mkdir -m 777 "${output_parent}/result"
+    STOCK_OUTPUT_DIR=${output_parent}/result
+fi
+STOCK_OUTPUT_DIR=${STOCK_OUTPUT_DIR:-} STOCK_NETWORK=bridge stock_run "${node_image}" -- sh tests/container/node "${native_arguments[@]}"
 if [[ ${action} == check || ${action} == lint ]]; then
-    stock_run "${node_image}" node -- sh tests/container/markdown
-    stock_run "${node_image}" '' -- bash -ec "for script in tests/container/stock tests/container/check-stock; do bash -n \"\$script\"; done"
-    stock_run "${node_image}" '' -- sh -ec "for script in tests/container/node tests/container/markdown; do sh -n \"\$script\"; done"
+    STOCK_NETWORK=bridge stock_run "${node_image}" -- sh tests/container/markdown
     shell_files=(tests/container/stock tests/container/check-stock tests/container/node tests/container/markdown)
     while IFS= read -r -d '' file; do
         if [[ ${file} == *.sh ]]; then shell_files+=("${file}"); fi
@@ -31,3 +66,4 @@ if [[ ${action} == check || ${action} == lint ]]; then
     stock_readonly "${shellcheck_image}" /bin/shellcheck -x -P SCRIPTDIR "${shell_files[@]}"
 fi
 stock_finish
+if [[ -n ${output_parent} ]]; then publish_dist "${output_parent}/result"; fi

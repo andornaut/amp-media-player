@@ -1,5 +1,6 @@
 #!/bin/sh
 set -eu
-test -d /scratch/node/node_modules
-if [ ! -e node_modules ]; then ln -s /scratch/node/node_modules node_modules; fi
+git config --global url.https://github.com/.insteadOf ssh://git@github.com/
+git config --global --add url.https://github.com/.insteadOf git@github.com:
+HUSKY=0 npm ci --ignore-scripts --maxsockets=1 --legacy-peer-deps --no-audit --no-fund >&2
 exec ./node_modules/.bin/markdownlint-cli2

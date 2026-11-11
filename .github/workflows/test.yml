@@ -61,107 +61,46 @@ jobs:
       - name: Lint
         run: |
           set -euo pipefail
-          checkout_root=$(pwd -P)
-          [[ ${GITHUB_SHA:?} =~ ^[0-9a-f]{40}$ ]]
-          expected_revision=$(git rev-parse "${GITHUB_SHA}^{commit}")
-          test "$GITHUB_SHA" = "$expected_revision"
-          test "$(git rev-parse HEAD)" = "$expected_revision"
-          test -z "$(git status --porcelain=v1 --untracked-files=all)"
-          git ls-files --error-unmatch .nvmrc package.json package-lock.json >/dev/null
-          node_version=$(sed 's/^v//' .nvmrc)
-          [[ "$node_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
-          stock_scratch=$(mktemp -d "${RUNNER_TEMP:?}/stock-node.XXXXXXXX")
-          mkdir "${stock_scratch}/source" "${stock_scratch}/scratch"
-          chmod 755 "${stock_scratch}/source"
-          chmod 1777 "${stock_scratch}/scratch"
-          excluded() {
-              case "${1,,}" in
-                  /*|..|../*|*/../*|*/..|.git|.git/*|*/.git|*/.git/*) return 0 ;;
-                  agents.md|*/agents.md|claude.md|*/claude.md|claude.local.md|*/claude.local.md|gemini.md|*/gemini.md) return 0 ;;
-                  .env|.env.*|*/.env|*/.env.*|*.env|.dev.vars|.dev.vars.*|*/.dev.vars|*/.dev.vars.*) return 0 ;;
-                  .npmrc|*/.npmrc|.pypirc|*/.pypirc|.netrc|*/.netrc|.git-credentials|*/.git-credentials|.private/*|*/.private/*|.ssh/*|*/.ssh/*|.aws/*|*/.aws/*) return 0 ;;
-                  credentials|credentials.*|*/credentials|*/credentials.*|*.pem|*.key|*.crt|*.cer|*.p12|*.pfx|*.age|*.gpg|*.sops.*) return 0 ;;
-              esac
-              return 1
-          }
-          git ls-files --cached -z > "${stock_scratch}/tracked.list"
-          while IFS= read -r -d '' path; do
-              if excluded "$path"; then continue; fi
-              if [[ ! -f "$path" || -L "$path" ]]; then
-                  printf 'Source must be a regular non-symlink file: %s\n' "$path" >&2
-                  exit 2
-              fi
-              resolved=$(realpath -e -- "$path")
-              case "$resolved" in
-                  "$checkout_root"/*) ;;
-                  *) printf 'Source path escapes checkout: %s\n' "$path" >&2; exit 2 ;;
-              esac
-              relative=${resolved#"$checkout_root/"}
-              if excluded "$relative"; then
-                  printf 'Source resolves to an excluded location: %s\n' "$path" >&2
-                  exit 2
-              fi
-              printf '%s\0' "$path"
-          done < "${stock_scratch}/tracked.list" > "${stock_scratch}/source.list"
-          tar --create --file "${stock_scratch}/source.tar" --null --verbatim-files-from --no-recursion --files-from "${stock_scratch}/source.list"
-          tar --extract --file "${stock_scratch}/source.tar" --directory "${stock_scratch}/source" --no-same-owner
-          chmod -R u+rwX,go+rX "${stock_scratch}/source"
-          source_revision=$(git rev-parse HEAD)
-          source_epoch=$(git show -s --format=%ct HEAD)
-          source_hash=$(sha256sum "${stock_scratch}/source.tar" | cut -d ' ' -f1)
-          source_dirty=false
-          if [ -n "$(git status --porcelain=v1 --untracked-files=all)" ]; then source_dirty=true; fi
-          test "$source_revision" = "$GITHUB_SHA"
-          test "$source_dirty" = false
-          source_before=$(git status --porcelain=v1 --untracked-files=all; git rev-parse HEAD; git diff HEAD --binary | sha256sum; sha256sum "${stock_scratch}/source.tar")
-          docker run --rm --read-only --user 19001:19001 \
-              --cpus 4 --memory 4g --pids-limit 512 --ulimit nofile=256:256 \
-              --cap-drop ALL --security-opt no-new-privileges \
-              --tmpfs /tmp:rw,nosuid,mode=1777 \
-              --mount "type=bind,source=${stock_scratch}/source,target=/source,readonly" \
-              --mount "type=bind,source=${stock_scratch}/scratch,target=/scratch" \
-              --env HOME=/scratch/home --env TMPDIR=/scratch \
-              --env "CHECK_REVISION=${source_revision}" --env "CHECK_SOURCE_SHA256=${source_hash}" \
-              --env "CHECK_SOURCE_DIRTY=${source_dirty}" --env "SOURCE_DATE_EPOCH=${source_epoch}" \
-              "node:${node_version}" /bin/sh -ec '
-              mkdir -p /scratch/work /scratch/home
-              cp -R /source/. /scratch/work/
-              cd /scratch/work
-              git config --global url.https://github.com/.insteadOf ssh://git@github.com/
-              git config --global --add url.https://github.com/.insteadOf git@github.com:
-              HUSKY=0 npm ci --ignore-scripts --maxsockets=1 --legacy-peer-deps --no-audit --no-fund
-              for script in tests/container/stock tests/container/check-stock; do bash -n "$script"; done
-              for script in tests/container/node tests/container/markdown; do sh -n "$script"; done
-              npm run lint
+          : "${GITHUB_SHA:?CI requires its expected source commit}"
+          ci_revision=$(git --no-optional-locks -c core.fsmonitor=false -c core.hooksPath=/dev/null rev-parse HEAD)
+          ci_status=$(git --no-optional-locks -c core.fsmonitor=false -c core.hooksPath=/dev/null status --porcelain=v1 --untracked-files=all)
+          if [[ ${ci_revision} != "${GITHUB_SHA}" || -n ${ci_status} ]]; then
+            printf '%s\n' 'CI requires the clean expected source commit.' >&2
+            exit 125
+          fi
+          if [[ ! ${GITHUB_SHA} =~ ^[a-f0-9]{40}$ ]]; then
+            printf '%s\n' 'CI requires a full expected commit SHA.' >&2
+            exit 125
+          fi
+          ci_control_blob=$(git --no-optional-locks -c core.fsmonitor=false -c core.hooksPath=/dev/null rev-parse --verify "${GITHUB_SHA}:tests/container/stock")
+          ci_control_entry=$(git --no-optional-locks -c core.fsmonitor=false -c core.hooksPath=/dev/null ls-tree "${GITHUB_SHA}" -- tests/container/stock)
+          if [[ ( ${ci_control_entry} != "100644 blob ${ci_control_blob}"$'\t'"tests/container/stock" && ${ci_control_entry} != "100755 blob ${ci_control_blob}"$'\t'"tests/container/stock" ) || ! -f tests/container/stock || -L tests/container/stock || ( ${ci_control_entry} == 100644* && -x tests/container/stock ) || ( ${ci_control_entry} == 100755* && ! -x tests/container/stock ) || $(git hash-object --no-filters -- tests/container/stock) != "${ci_control_blob}" ]]; then
+            printf '%s\n' 'CI stock control source differs from the expected regular blob.' >&2
+            exit 125
+          fi
+          source tests/container/stock
+          stock_begin "$PWD"
+          [[ ${revision} == "${GITHUB_SHA:?}" ]]
+          [[ ${source_dirty} == false ]]
+          stock_image node_image "node:$(sed 's/^v//' .nvmrc)"
+          STOCK_NETWORK=bridge stock_run "${node_image}" -- sh -ec '
+          git config --global url.https://github.com/.insteadOf ssh://git@github.com/
+          git config --global --add url.https://github.com/.insteadOf git@github.com:
+          HUSKY=0 npm ci --ignore-scripts --maxsockets=1 --legacy-peer-deps --no-audit --no-fund
+          for script in tests/container/stock tests/container/check-stock; do bash -n "$script"; done
+          for script in tests/container/node tests/container/markdown; do sh -n "$script"; done
+          npm run lint
           '
-          docker run --rm --read-only --network none --user 19001:19001 \
-              --cpus 4 --memory 4g --pids-limit 512 --ulimit nofile=256:256 \
-              --cap-drop ALL --security-opt no-new-privileges \
-              --tmpfs /tmp:rw,nosuid,mode=1777 \
-              --mount "type=bind,source=${stock_scratch}/source,target=/source,readonly" \
-              --mount "type=bind,source=${stock_scratch}/scratch,target=/scratch" \
-              --env HOME=/scratch/home --env TMPDIR=/scratch \
-              "node:${node_version}" /bin/sh -ec '
-              mkdir /scratch/markdown
-              cp -R /source/. /scratch/markdown/
-              ln -s /scratch/work/node_modules /scratch/markdown/node_modules
-              cd /scratch/markdown
-              ./node_modules/.bin/markdownlint-cli2
+          STOCK_NETWORK=bridge stock_run "${node_image}" -- sh -ec '
+          git config --global url.https://github.com/.insteadOf ssh://git@github.com/
+          git config --global --add url.https://github.com/.insteadOf git@github.com:
+          HUSKY=0 npm ci --ignore-scripts --maxsockets=1 --legacy-peer-deps --no-audit --no-fund
+          ./node_modules/.bin/markdownlint-cli2
           '
-          lint_tool_scratch=$(mktemp -d "${RUNNER_TEMP:?}/stock-shellcheck.XXXXXXXX")
-          chmod 1777 "$lint_tool_scratch"
+          stock_image shellcheck_image koalaman/shellcheck:v0.11.0
           shell_files=(tests/container/stock tests/container/check-stock tests/container/node tests/container/markdown)
           while IFS= read -r -d '' path; do
-              shell_files+=("${path#"${stock_scratch}/source/"}")
-          done < <(find "${stock_scratch}/source" -type f -name '*.sh' -not -path '*/node_modules/*' -not -path '*/.husky/*' -print0)
-          docker run --rm --read-only --network none --user 19001:19001 \
-              --cpus 4 --memory 4g --pids-limit 512 --ulimit nofile=256:256 \
-              --cap-drop ALL --security-opt no-new-privileges \
-              --tmpfs /tmp:rw,nosuid,mode=1777 \
-              --mount "type=bind,source=${stock_scratch}/source,target=/work,readonly" \
-              --mount "type=bind,source=${lint_tool_scratch},target=/scratch" \
-              --env HOME=/scratch/home --env TMPDIR=/scratch --workdir /work \
-              --entrypoint /bin/shellcheck koalaman/shellcheck:v0.11.0 \
-              -x -P SCRIPTDIR "${shell_files[@]}"
-          source_after=$(git status --porcelain=v1 --untracked-files=all; git rev-parse HEAD; git diff HEAD --binary | sha256sum; sha256sum "${stock_scratch}/source.tar")
-          test "$source_before" = "$source_after"
+              if [[ ${path} == *.sh ]]; then shell_files+=("${path}"); fi
+          done < "${scratch}/source.list"
+          stock_readonly "${shellcheck_image}" /bin/shellcheck -x -P SCRIPTDIR "${shell_files[@]}"
+          stock_finish
