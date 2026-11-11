@@ -75,7 +75,9 @@ jobs:
         run: |
           set -euo pipefail
           checkout_root=$(pwd -P)
-          expected_revision=$(git rev-parse "${GITHUB_SHA:?}^{commit}")
+          [[ ${GITHUB_SHA:?} =~ ^[0-9a-f]{40}$ ]]
+          expected_revision=$(git rev-parse "${GITHUB_SHA}^{commit}")
+          test "$GITHUB_SHA" = "$expected_revision"
           test "$(git rev-parse HEAD)" = "$expected_revision"
           test -z "$(git status --porcelain=v1 --untracked-files=all)"
           git ls-files --error-unmatch .nvmrc package.json package-lock.json >/dev/null
@@ -122,6 +124,8 @@ jobs:
           source_hash=$(sha256sum "${stock_scratch}/source.tar" | cut -d ' ' -f1)
           source_dirty=false
           if [ -n "$(git status --porcelain=v1 --untracked-files=all)" ]; then source_dirty=true; fi
+          test "$source_revision" = "$GITHUB_SHA"
+          test "$source_dirty" = false
           source_before=$(git status --porcelain=v1 --untracked-files=all; git rev-parse HEAD; git diff HEAD --binary | sha256sum; sha256sum "${stock_scratch}/source.tar")
           docker run --rm --read-only --user 19001:19001 \
               --cpus 4 --memory 4g --pids-limit 512 --ulimit nofile=256:256 \
