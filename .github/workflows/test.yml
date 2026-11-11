@@ -96,7 +96,7 @@ jobs:
           git config --global url.https://github.com/.insteadOf ssh://git@github.com/
           git config --global --add url.https://github.com/.insteadOf git@github.com:
           HUSKY=0 npm ci --ignore-scripts --maxsockets=1 --legacy-peer-deps --no-audit --no-fund
-          ./node_modules/.bin/markdownlint-cli2
+          sh tests/container/markdown
           '
           stock_image shellcheck_image koalaman/shellcheck:v0.11.0
           shell_files=(tests/container/stock tests/container/check-stock tests/container/node tests/container/markdown)

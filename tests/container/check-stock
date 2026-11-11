@@ -113,15 +113,16 @@ if [[ ${action} == build ]]; then
     mkdir "${build_output}"
     STOCK_OUTPUT_DIR=${build_output}
 fi
-STOCK_OUTPUT_DIR=${STOCK_OUTPUT_DIR:-} STOCK_NETWORK=bridge stock_run "${node_image}" -- sh tests/container/node "${native_arguments[@]}"
 if [[ ${action} == check || ${action} == lint ]]; then
-    STOCK_NETWORK=bridge stock_run "${node_image}" -- sh tests/container/markdown
+    STOCK_NETWORK=bridge stock_run "${node_image}" -- sh -ec "sh tests/container/node \"\$@\"; sh tests/container/markdown" sh "${native_arguments[@]}"
     shell_files=(tests/container/stock tests/container/check-stock tests/container/node tests/container/markdown)
     while IFS= read -r -d '' file; do
         if [[ ${file} == *.sh ]]; then shell_files+=("${file}"); fi
     done < "${scratch}/source.list"
     stock_image shellcheck_image "${SHELLCHECK_IMAGE}"
     stock_readonly "${shellcheck_image}" /bin/shellcheck -x -P SCRIPTDIR "${shell_files[@]}"
+else
+    STOCK_OUTPUT_DIR=${STOCK_OUTPUT_DIR:-} STOCK_NETWORK=bridge stock_run "${node_image}" -- sh tests/container/node "${native_arguments[@]}"
 fi
 stock_finish
 if [[ -n ${build_output} ]]; then publish_dist "${build_output}"; fi
