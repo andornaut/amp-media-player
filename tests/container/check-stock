@@ -9,6 +9,8 @@ if (( $# > 1 )); then exit 2; fi
 if [[ ${action} == test ]]; then printf '%s\n' 'No test suite is declared.' >&2; exit 2; fi
 native_arguments=("${action}")
 stock_begin "${checkout}"
+node_image=
+shellcheck_image=
 stock_image node_image "${NODE_IMAGE:?}"
 if [[ ${action} == check || ${action} == lint ]]; then
     STOCK_NETWORK=bridge stock_run "${node_image}" -- sh -ec "sh tests/container/node \"\$@\"; sh tests/container/markdown" sh "${native_arguments[@]}"
