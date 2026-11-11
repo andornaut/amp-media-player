@@ -93,28 +93,37 @@ jobs:
           fi
           source tests/container/stock
           stock_begin "$PWD"
+          STOCK_OUTPUT_DIR=
           [[ ${revision} == "${GITHUB_SHA:?}" ]]
           [[ ${source_dirty} == false ]]
           stock_image node_image "node:$(sed 's/^v//' .nvmrc)"
           publish_dist() {
-              local generated=$1 stage backup entry
-              [[ -d ${generated} && ! -L ${generated} && ! -L dist ]]
+              local generated=$1 stage backup entry relative validation_list
+              [[ $(pwd -P) == "${checkout}" && $(realpath -e -- "${checkout}") == "${checkout}" ]]
+              [[ ${generated} == "${scratch}/build-output" && -d ${generated} && ! -L ${generated} && ! -L dist ]]
               [[ -z $(git ls-files -- dist) && -z $(git ls-tree -r --name-only HEAD -- dist) ]]
               git check-ignore --quiet --no-index dist/
+              validation_list=$(mktemp "${scratch}/publish-list.XXXXXXXX")
+              find -P "${generated}" -print0 > "${validation_list}"
+              [[ -n $(find -P "${generated}" -type f -print -quit) ]]
               while IFS= read -r -d '' entry; do
-                  [[ -f ${entry} || -d ${entry} ]]
-                  [[ ! -L ${entry} ]]
-              done < <(find "${generated}" -print0)
+                  [[ ! -L ${entry} && ( -f ${entry} || -d ${entry} ) ]]
+                  if [[ -f ${entry} ]]; then [[ $(stat -c %h -- "${entry}") == 1 ]]; fi
+                  relative=${entry#"${generated}"}
+                  if [[ -n ${relative} ]]; then git check-ignore --quiet --no-index "dist${relative}"; fi
+              done < "${validation_list}"
               if [[ -e dist ]]; then
                   [[ -d dist ]]
+                  find -P dist -print0 > "${validation_list}"
                   while IFS= read -r -d '' entry; do
-                      [[ -f ${entry} || -d ${entry} ]]
-                      [[ ! -L ${entry} ]]
+                      [[ ! -L ${entry} && ( -f ${entry} || -d ${entry} ) ]]
                       git check-ignore --quiet --no-index "${entry}"
-                  done < <(find dist -print0)
+                  done < "${validation_list}"
               fi
               stage=$(mktemp -d .dist-stage.XXXXXXXX)
               cp -R -- "${generated}/." "${stage}/"
+              find -P "${stage}" -type d -exec chmod u+rwx,go+rx,go-w {} +
+              find -P "${stage}" -type f -exec chmod u+rw,go+r,go-w {} +
               backup=
               if [[ -e dist ]]; then
                   backup=$(mktemp -d .dist-backup.XXXXXXXX)
@@ -122,23 +131,25 @@ jobs:
                   mv -- dist "${backup}"
               fi
               if mv -- "${stage}" dist; then
-                  if [[ -n ${backup} ]]; then find "${backup}" -depth -delete; fi
+                  if [[ -n ${backup} ]]; then find -P "${backup}" -depth -delete; fi
               else
                   if [[ -n ${backup} ]]; then mv -- "${backup}" dist; fi
                   return 1
               fi
           }
-          output_parent=$(mktemp -d "${RUNNER_TEMP:?}/project-build.XXXXXXXX")
-          mkdir -m 777 "${output_parent}/result"
-          STOCK_OUTPUT_DIR=${output_parent}/result STOCK_NETWORK=bridge stock_run "${node_image}" -- sh -ec '
+          build_output=${scratch}/build-output
+          mkdir "${build_output}"
+          STOCK_OUTPUT_DIR=${build_output} STOCK_NETWORK=bridge stock_run "${node_image}" -- sh -ec '
           git config --global url.https://github.com/.insteadOf ssh://git@github.com/
           git config --global --add url.https://github.com/.insteadOf git@github.com:
           HUSKY=0 npm ci --ignore-scripts --maxsockets=1 --legacy-peer-deps --no-audit --no-fund
           npm run build:prod
+          test -d /outputs
           cp -R dist/. /outputs/
+          find /outputs -mindepth 1 -type d -exec chmod a+rwx {} +
           '
           stock_finish
-          publish_dist "${output_parent}/result"
+          publish_dist "${build_output}"
 
       - name: Create release artifact
         run: |

@@ -80,6 +80,7 @@ jobs:
           fi
           source tests/container/stock
           stock_begin "$PWD"
+          STOCK_OUTPUT_DIR=
           [[ ${revision} == "${GITHUB_SHA:?}" ]]
           [[ ${source_dirty} == false ]]
           stock_image node_image "node:$(sed 's/^v//' .nvmrc)"

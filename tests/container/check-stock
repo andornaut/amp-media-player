@@ -13,29 +13,38 @@ native_arguments=("${action}")
 : "${NODE_IMAGE:?The Makefile declares NODE_IMAGE}"
 : "${SHELLCHECK_IMAGE:?The Makefile declares SHELLCHECK_IMAGE}"
 stock_begin "${checkout}"
+cd -- "${checkout}"
 STOCK_OUTPUT_DIR=
 node_image=
 shellcheck_image=
 stock_image node_image "${NODE_IMAGE}"
 publish_dist() {
-    local generated=$1 stage backup entry
-    [[ -d ${generated} && ! -L ${generated} && ! -L dist ]]
+    local generated=$1 stage backup entry relative validation_list
+    [[ $(pwd -P) == "${checkout}" && $(realpath -e -- "${checkout}") == "${checkout}" ]]
+    [[ ${generated} == "${scratch}/build-output" && -d ${generated} && ! -L ${generated} && ! -L dist ]]
     [[ -z $(git ls-files -- dist) && -z $(git ls-tree -r --name-only HEAD -- dist) ]]
     git check-ignore --quiet --no-index dist/
+    validation_list=$(mktemp "${scratch}/publish-list.XXXXXXXX")
+    find -P "${generated}" -print0 > "${validation_list}"
+    [[ -n $(find -P "${generated}" -type f -print -quit) ]]
     while IFS= read -r -d '' entry; do
-        [[ -f ${entry} || -d ${entry} ]]
-        [[ ! -L ${entry} ]]
-    done < <(find "${generated}" -print0)
+        [[ ! -L ${entry} && ( -f ${entry} || -d ${entry} ) ]]
+        if [[ -f ${entry} ]]; then [[ $(stat -c %h -- "${entry}") == 1 ]]; fi
+        relative=${entry#"${generated}"}
+        if [[ -n ${relative} ]]; then git check-ignore --quiet --no-index "dist${relative}"; fi
+    done < "${validation_list}"
     if [[ -e dist ]]; then
         [[ -d dist ]]
+        find -P dist -print0 > "${validation_list}"
         while IFS= read -r -d '' entry; do
-            [[ -f ${entry} || -d ${entry} ]]
-            [[ ! -L ${entry} ]]
+            [[ ! -L ${entry} && ( -f ${entry} || -d ${entry} ) ]]
             git check-ignore --quiet --no-index "${entry}"
-        done < <(find dist -print0)
+        done < "${validation_list}"
     fi
     stage=$(mktemp -d .dist-stage.XXXXXXXX)
     cp -R -- "${generated}/." "${stage}/"
+    find -P "${stage}" -type d -exec chmod u+rwx,go+rx,go-w {} +
+    find -P "${stage}" -type f -exec chmod u+rw,go+r,go-w {} +
     backup=
     if [[ -e dist ]]; then
         backup=$(mktemp -d .dist-backup.XXXXXXXX)
@@ -43,17 +52,17 @@ publish_dist() {
         mv -- dist "${backup}"
     fi
     if mv -- "${stage}" dist; then
-        if [[ -n ${backup} ]]; then find "${backup}" -depth -delete; fi
+        if [[ -n ${backup} ]]; then find -P "${backup}" -depth -delete; fi
     else
         if [[ -n ${backup} ]]; then mv -- "${backup}" dist; fi
         return 1
     fi
 }
-output_parent=
+build_output=
 if [[ ${action} == build ]]; then
-    output_parent=$(mktemp -d "${TMPDIR:-/tmp}/project-build.XXXXXXXX")
-    mkdir -m 777 "${output_parent}/result"
-    STOCK_OUTPUT_DIR=${output_parent}/result
+    build_output=${scratch}/build-output
+    mkdir "${build_output}"
+    STOCK_OUTPUT_DIR=${build_output}
 fi
 STOCK_OUTPUT_DIR=${STOCK_OUTPUT_DIR:-} STOCK_NETWORK=bridge stock_run "${node_image}" -- sh tests/container/node "${native_arguments[@]}"
 if [[ ${action} == check || ${action} == lint ]]; then
@@ -66,4 +75,4 @@ if [[ ${action} == check || ${action} == lint ]]; then
     stock_readonly "${shellcheck_image}" /bin/shellcheck -x -P SCRIPTDIR "${shell_files[@]}"
 fi
 stock_finish
-if [[ -n ${output_parent} ]]; then publish_dist "${output_parent}/result"; fi
+if [[ -n ${build_output} ]]; then publish_dist "${build_output}"; fi
