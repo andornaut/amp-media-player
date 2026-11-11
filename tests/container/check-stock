@@ -18,8 +18,55 @@ STOCK_OUTPUT_DIR=
 node_image=
 shellcheck_image=
 stock_image node_image "${NODE_IMAGE}"
-publish_dist() {
-    local generated=$1 stage backup entry relative validation_list
+publish_dist() (
+    set -euo pipefail
+    local generated=$1 stage= backup= entry relative validation_list
+    local stage_identity= backup_identity= old_identity=
+    publish_identity() {
+        if [[ -d $1 && ! -L $1 ]]; then stat -c '%d:%i' -- "$1"; fi
+    }
+    publish_remove_owned() {
+        local path=$1 identity=$2
+        if [[ ! -e ${path} && ! -L ${path} ]]; then return 0; fi
+        if [[ -z ${identity} || $(publish_identity "${path}") != "${identity}" || -n $(find -P "${path}" -type l -print -quit) ]]; then
+            printf 'Preserve changed publication path: %s\n' "${path}" >&2
+            return 125
+        fi
+        find -P "${path}" -depth -delete
+    }
+    publish_cleanup() {
+        local status=$?
+        trap - EXIT INT TERM HUP
+        set +e
+        if (( status != 0 )); then
+            if [[ -n ${stage_identity} && $(publish_identity dist) == "${stage_identity}" && ! -e ${stage} && ! -L ${stage} ]]; then
+                mv -T --no-clobber -- dist "${stage}"
+                if [[ $(publish_identity "${stage}") != "${stage_identity}" ]]; then status=125; fi
+            fi
+            if [[ -n ${old_identity} && -n ${backup} && $(publish_identity "${backup}") == "${old_identity}" ]]; then
+                if [[ ! -e dist && ! -L dist ]]; then
+                    mv -T --no-clobber -- "${backup}" dist
+                    if [[ $(publish_identity dist) != "${old_identity}" || -e ${backup} || -L ${backup} ]]; then status=125; fi
+                else
+                    printf 'Preserve concurrent dist and recover original output from: %s/%s\n' "${checkout}" "${backup}" >&2
+                    status=125
+                fi
+            fi
+        fi
+        if [[ -n ${stage} ]]; then publish_remove_owned "${stage}" "${stage_identity}" || status=125; fi
+        if [[ -n ${backup} && ( -e ${backup} || -L ${backup} ) ]]; then
+            if (( status == 0 )); then
+                publish_remove_owned "${backup}" "${old_identity}" || status=125
+            elif [[ $(publish_identity "${backup}") == "${backup_identity}" ]]; then
+                publish_remove_owned "${backup}" "${backup_identity}" || status=125
+            fi
+        fi
+        exit "${status}"
+    }
+    trap publish_cleanup EXIT
+    trap 'exit 130' INT
+    trap 'exit 143' TERM
+    trap 'exit 129' HUP
     [[ $(pwd -P) == "${checkout}" && $(realpath -e -- "${checkout}") == "${checkout}" ]]
     [[ ${generated} == "${scratch}/build-output" && -d ${generated} && ! -L ${generated} && ! -L dist ]]
     [[ -z $(git ls-files -- dist) && -z $(git ls-tree -r --name-only HEAD -- dist) ]]
@@ -40,24 +87,22 @@ publish_dist() {
             [[ ! -L ${entry} && ( -f ${entry} || -d ${entry} ) ]]
             git check-ignore --quiet --no-index "${entry}"
         done < "${validation_list}"
+        old_identity=$(publish_identity dist)
     fi
     stage=$(mktemp -d .dist-stage.XXXXXXXX)
+    stage_identity=$(publish_identity "${stage}")
     cp -R -- "${generated}/." "${stage}/"
     find -P "${stage}" -type d -exec chmod u+rwx,go+rx,go-w {} +
     find -P "${stage}" -type f -exec chmod u+rw,go+r,go-w {} +
-    backup=
-    if [[ -e dist ]]; then
+    if [[ -n ${old_identity} ]]; then
         backup=$(mktemp -d .dist-backup.XXXXXXXX)
-        rmdir -- "${backup}"
-        mv -- dist "${backup}"
+        backup_identity=$(publish_identity "${backup}")
+        [[ $(publish_identity dist) == "${old_identity}" ]]
+        mv -T -- dist "${backup}"
     fi
-    if mv -- "${stage}" dist; then
-        if [[ -n ${backup} ]]; then find -P "${backup}" -depth -delete; fi
-    else
-        if [[ -n ${backup} ]]; then mv -- "${backup}" dist; fi
-        return 1
-    fi
-}
+    mv -T --no-clobber -- "${stage}" dist
+    [[ ! -e ${stage} && ! -L ${stage} && $(publish_identity dist) == "${stage_identity}" ]]
+)
 build_output=
 if [[ ${action} == build ]]; then
     build_output=${scratch}/build-output
