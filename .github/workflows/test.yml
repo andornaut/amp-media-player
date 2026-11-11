@@ -65,11 +65,6 @@ jobs:
           for script in tests/container/stock tests/container/check-stock; do bash -n "$script"; done
           for script in tests/container/node tests/container/markdown; do sh -n "$script"; done
           npm run lint
-          '
-          STOCK_NETWORK=bridge stock_run "${node_image}" -- sh -ec '
-          git config --global url.https://github.com/.insteadOf ssh://git@github.com/
-          git config --global --add url.https://github.com/.insteadOf git@github.com:
-          HUSKY=0 npm ci --ignore-scripts --maxsockets=1 --legacy-peer-deps --no-audit --no-fund
           sh tests/container/markdown
           '
           stock_image shellcheck_image koalaman/shellcheck:v0.11.0
