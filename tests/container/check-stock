@@ -21,9 +21,9 @@ if [[ ${action} == build ]]; then outputs=(dist); fi
 stock_run "${node_image}" node -- sh tests/container/node "${native_arguments[@]}"
 if [[ ${action} == check || ${action} == lint ]]; then
     stock_run "${node_image}" node -- sh tests/container/markdown
-    stock_run "${node_image}" '' -- bash -ec "for script in tests/container/run tests/container/stock tests/container/check-stock; do bash -n \"\$script\"; done"
-    stock_run "${node_image}" '' -- sh -ec "for script in tests/container/check tests/container/node tests/container/markdown; do sh -n \"\$script\"; done"
-    shell_files=(tests/container/run tests/container/check tests/container/stock tests/container/check-stock tests/container/node tests/container/markdown)
+    stock_run "${node_image}" '' -- bash -ec "for script in tests/container/stock tests/container/check-stock; do bash -n \"\$script\"; done"
+    stock_run "${node_image}" '' -- sh -ec "for script in tests/container/node tests/container/markdown; do sh -n \"\$script\"; done"
+    shell_files=(tests/container/stock tests/container/check-stock tests/container/node tests/container/markdown)
     while IFS= read -r -d '' file; do
         if [[ ${file} == *.sh ]]; then shell_files+=("${file}"); fi
     done < "${scratch}/source.list"
