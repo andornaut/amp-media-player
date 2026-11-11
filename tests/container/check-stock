@@ -20,11 +20,13 @@ shellcheck_image=
 stock_image node_image "${NODE_IMAGE}"
 publish_dist() (
     set -euo pipefail
-    local generated=$1 stage= backup= entry relative validation_list
-    local stage_identity= backup_identity= old_identity=
+    local generated=$1 stage='' backup='' entry relative validation_list
+    local stage_identity='' backup_identity='' old_identity=''
     publish_identity() {
         if [[ -d $1 && ! -L $1 ]]; then stat -c '%d:%i' -- "$1"; fi
     }
+    # Called only by the publication EXIT callback.
+    # shellcheck disable=SC2329
     publish_remove_owned() {
         local path=$1 identity=$2
         if [[ ! -e ${path} && ! -L ${path} ]]; then return 0; fi
@@ -34,6 +36,8 @@ publish_dist() (
         fi
         find -P "${path}" -depth -delete
     }
+    # Invoked by the publication EXIT trap.
+    # shellcheck disable=SC2329
     publish_cleanup() {
         local status=$?
         trap - EXIT INT TERM HUP
